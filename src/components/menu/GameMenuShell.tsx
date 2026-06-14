@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import GameMenuTopBar from "./GameMenuTopBar";
 import GameMenuBottomNav from "./GameMenuBottomNav";
-import GameMenuSideRail from "./GameMenuSideRail";
+import GameMenuBackground from "./GameMenuBackground";
 
 interface GameMenuShellProps {
   children: ReactNode;
@@ -12,12 +12,15 @@ export default function GameMenuShell({ children, activeNav = "home" }: GameMenu
   return (
     <div className="game-menu-screen fixed inset-0 z-50 flex flex-col bg-emerald-dark overflow-hidden">
       <div className="absolute inset-0 game-menu-bg pointer-events-none" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_100%,rgba(26,58,46,0.5)_0%,transparent_70%)] pointer-events-none" />
+      <GameMenuBackground />
 
       <GameMenuTopBar />
-      <GameMenuSideRail />
 
-      <main className="relative flex-1 flex flex-col min-h-0 z-10">{children}</main>
+      <main className="relative flex-1 flex flex-col min-h-0 z-10 overflow-hidden">
+        <div className="menu-content-wrap flex-1 flex flex-col min-h-0 overflow-y-auto overflow-x-hidden">
+          {children}
+        </div>
+      </main>
 
       <GameMenuBottomNav active={activeNav} />
     </div>

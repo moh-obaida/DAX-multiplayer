@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import GameMenuShell from "../components/menu/GameMenuShell";
 import ModeCard from "../components/menu/ModeCard";
@@ -5,7 +6,6 @@ import Modal from "../components/UI/Modal";
 import { useRoomStore } from "../store/roomStore";
 import { useToastStore } from "../store/toastStore";
 import { getHelpUrl } from "../utils/urls";
-import { useState } from "react";
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -31,60 +31,55 @@ export default function HomePage() {
 
   return (
     <GameMenuShell activeNav="home">
-      <div className="flex-1 flex flex-col items-center justify-center min-h-0 px-3 sm:px-6 pb-2">
-        <p className="font-display text-[10px] sm:text-xs uppercase tracking-[0.35em] text-gold/70 mb-4 sm:mb-6">
+      <div className="menu-container flex flex-col justify-center flex-1 py-4 sm:py-6 min-h-0">
+        <h2 className="font-display text-xs sm:text-sm uppercase tracking-[0.4em] text-gold text-center mb-4 sm:mb-5">
           Select Mode
-        </p>
+        </h2>
 
-        <div className="mode-card-row w-full max-w-5xl overflow-x-auto pb-2 scrollbar-thin">
-          <div className="flex items-stretch justify-center gap-3 sm:gap-4 md:gap-5 min-w-min mx-auto px-1">
-            <ModeCard
-              title="Quick Match"
-              subtitle="Jump into a live table"
-              icon="⚡"
-              featured
-              accent="gold"
-              onClick={handleQuickMatch}
-            />
-            <ModeCard
-              title="Private Room"
-              subtitle="Host friends & rules"
-              icon="🔐"
-              to="/play"
-              accent="board"
-            />
-            <ModeCard
-              title="Join Code"
-              subtitle="Enter 6-digit room"
-              icon="#"
-              accent="emerald"
-              onClick={() => setJoinOpen(true)}
-            />
-            <ModeCard
-              title="Play With Friends"
-              subtitle="Invite your crew"
-              icon="👥"
-              to="/friends"
-              accent="board"
-            />
-            <ModeCard
-              title="Tutorial"
-              subtitle="Learn DAX rules"
-              icon="📖"
-              href={getHelpUrl()}
-              accent="emerald"
-            />
-            <ModeCard
-              title="Custom Rules"
-              subtitle="House rules & hands"
-              icon="⚙"
-              to="/play"
-              accent="board"
-            />
-          </div>
+        {/* Responsive grid — no horizontal scroll, no clipped cards */}
+        <div className="mode-grid w-full">
+          <ModeCard
+            className="mode-grid-quick"
+            title="Quick Match"
+            subtitle="Jump into a live table now"
+            visual="quick"
+            primary
+            onClick={handleQuickMatch}
+          />
+          <ModeCard
+            title="Private Room"
+            subtitle="Host friends & rules"
+            visual="private"
+            to="/play"
+          />
+          <ModeCard
+            title="Join Code"
+            subtitle="Enter 6-digit room"
+            visual="join"
+            onClick={() => setJoinOpen(true)}
+          />
+          <ModeCard
+            title="Play With Friends"
+            subtitle="Invite your crew"
+            visual="friends"
+            to="/friends"
+          />
+          <ModeCard
+            title="Tutorial"
+            subtitle="Learn DAX rules"
+            visual="tutorial"
+            href={getHelpUrl()}
+          />
+          <ModeCard
+            className="mode-grid-custom"
+            title="Custom Rules"
+            subtitle="House rules & hand sizes"
+            visual="custom"
+            to="/play"
+          />
         </div>
 
-        <p className="mt-4 sm:mt-6 text-[10px] text-ivory-dim/70 uppercase tracking-widest">
+        <p className="text-center text-[10px] text-ivory-dim/60 uppercase tracking-widest mt-4 sm:mt-5">
           Halal · Ad-free · No gambling
         </p>
       </div>

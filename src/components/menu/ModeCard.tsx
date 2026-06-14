@@ -1,44 +1,58 @@
 import { Link } from "react-router-dom";
+import { ModeCardVisual, type ModeVisualId } from "./ModeCardVisuals";
 
 interface ModeCardProps {
   title: string;
   subtitle: string;
-  icon: string;
+  visual: ModeVisualId;
   to?: string;
   href?: string;
   onClick?: () => void;
-  featured?: boolean;
-  accent?: "gold" | "board" | "emerald";
+  primary?: boolean;
+  className?: string;
 }
 
-const accents = {
-  gold: "from-gold/20 via-board to-emerald-dark border-gold/50 shadow-gold-sm",
-  board: "from-board-light/40 via-board to-emerald-dark border-gold/25",
-  emerald: "from-emerald-light/30 via-emerald to-emerald-dark border-gold/20",
-};
-
-export default function ModeCard({ title, subtitle, icon, to, href, onClick, featured, accent = "board" }: ModeCardProps) {
-  const classes = `mode-card group relative flex flex-col items-center justify-between w-[140px] sm:w-[160px] md:w-[172px] h-[220px] sm:h-[260px] md:h-[280px] rounded-2xl border bg-gradient-to-b p-4 cursor-pointer transition-all duration-300
-    hover:-translate-y-2 hover:shadow-gold hover:border-gold/60 active:scale-[0.98]
-    ${featured ? "mode-card-featured " + accents.gold : accents[accent]}`;
+export default function ModeCard({
+  title,
+  subtitle,
+  visual,
+  to,
+  href,
+  onClick,
+  primary,
+  className = "",
+}: ModeCardProps) {
+  const classes = `mode-card group relative flex flex-col rounded-2xl border overflow-hidden cursor-pointer transition-all duration-300
+    hover:-translate-y-1 active:scale-[0.99]
+    ${primary
+      ? "mode-card-primary bg-gradient-to-br from-gold/25 via-board to-emerald-dark border-gold/60 shadow-gold"
+      : "bg-gradient-to-b from-board-light/50 via-board/80 to-emerald-dark border-gold/25 hover:border-gold/45 hover:shadow-gold-sm"
+    }
+    ${className}`;
 
   const inner = (
     <>
-      {featured && <div className="absolute inset-0 rounded-2xl bg-gold/5 animate-pulse-gold pointer-events-none" />}
-      <div className="relative z-[1] w-full flex flex-col items-center flex-1">
-        <div className={`text-4xl sm:text-5xl mb-3 transition-transform group-hover:scale-110 ${featured ? "drop-shadow-[0_0_12px_rgba(212,175,55,0.5)]" : ""}`}>
-          {icon}
+      {primary && (
+        <>
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgba(212,175,55,0.2)_0%,transparent_65%)] pointer-events-none" />
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gold/80" />
+        </>
+      )}
+      <div className="relative z-[1] flex flex-col items-center justify-center flex-1 p-4 min-h-0">
+        <div className={`mb-3 transition-transform duration-300 group-hover:scale-105 ${primary ? "drop-shadow-[0_0_16px_rgba(212,175,55,0.45)]" : ""}`}>
+          <ModeCardVisual id={visual} large={primary} />
         </div>
-        <h3 className={`font-display text-sm sm:text-base font-bold text-center leading-tight ${featured ? "text-gold" : "text-ivory"}`}>
+        <h3 className={`font-display font-bold text-center leading-tight ${primary ? "text-lg text-gold" : "text-sm text-ivory"}`}>
           {title}
         </h3>
-        <p className="text-[10px] sm:text-xs text-ivory-dim text-center mt-2 leading-snug">{subtitle}</p>
+        <p className="text-[10px] sm:text-xs text-ivory-dim text-center mt-1.5 leading-snug max-w-[140px]">{subtitle}</p>
+        {primary && (
+          <span className="mt-3 px-4 py-1.5 rounded-full bg-gold text-emerald-dark text-[10px] font-display font-bold uppercase tracking-widest shadow-gold-sm group-hover:scale-105 transition-transform">
+            Play Now
+          </span>
+        )}
       </div>
-      <div className="relative z-[1] w-full mt-auto pt-3">
-        <div className={`h-1 rounded-full ${featured ? "bg-gold/60" : "bg-gold/20 group-hover:bg-gold/40"} transition-colors`} />
-      </div>
-      {/* Decorative card corner */}
-      <div className="absolute top-2 right-2 w-6 h-8 rounded-sm border border-gold/20 bg-emerald-dark/50 opacity-40 rotate-6 group-hover:opacity-70 transition-opacity" />
+      <div className={`absolute bottom-0 left-0 right-0 h-0.5 ${primary ? "bg-gold" : "bg-gold/20 group-hover:bg-gold/50"} transition-colors`} />
     </>
   );
 
