@@ -14,8 +14,10 @@ export default function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Full-screen game menu — no website chrome */}
+        <Route path="/" element={<HomePage />} />
+
         <Route element={<AppLayout />}>
-          <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/play" element={<PlayPage />} />
@@ -24,6 +26,7 @@ export default function AppRouter() {
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Route>
+
         <Route path="/game/:gameId" element={<GamePage />} />
       </Routes>
     </BrowserRouter>
