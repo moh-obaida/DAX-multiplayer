@@ -90,6 +90,43 @@
   .dax-status-online { @apply w-2 h-2 rounded-full bg-green shadow-[0_0_8px_rgba(67,160,71,0.8)]; }
   .dax-status-away { @apply w-2 h-2 rounded-full bg-yellow shadow-[0_0_8px_rgba(253,216,53,0.8)]; }
   .dax-status-offline { @apply w-2 h-2 rounded-full bg-ivory-dim; }
+
+  /* Homepage lobby table preview */
+  .lobby-scene-perspective {
+    perspective: 900px;
+  }
+
+  .lobby-table-scene {
+    transform: rotateX(8deg);
+    transform-style: preserve-3d;
+  }
+
+  .lobby-table-surface {
+    transform: rotateX(52deg) scaleY(0.88);
+    transform-style: preserve-3d;
+  }
+
+  .lobby-pile-float {
+    animation: lobbyFloat 4s ease-in-out infinite;
+  }
+
+  .lobby-card-float {
+    animation: lobbyCardBob 3s ease-in-out infinite;
+  }
+
+  @keyframes lobbyFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+  }
+
+  @keyframes lobbyCardBob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+  }
+
+  .lobby-action-panel {
+    box-shadow: 0 0 40px rgba(212, 175, 55, 0.12), 0 8px 32px rgba(0, 0, 0, 0.5);
+  }
 }
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }
