@@ -19,6 +19,7 @@ export interface Player {
   hasCalledDax: boolean;
   wins: number;
   losses: number;
+  isBot?: boolean;
 }
 
 export interface GameState {

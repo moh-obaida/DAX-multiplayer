@@ -3,6 +3,16 @@ import { generateDeck, dealHand, getNextPlayer } from "./cardUtils";
 import { defaultHouseRules } from "../config/daxRules";
 import { getWinnerIndex } from "../config/daxRules";
 
+import type { Card } from "../types/game";
+
+export function isValidPlay(card: Card, topCard: Card): boolean {
+  if (card.type === "wild" || card.type === "wild_draw4") return true;
+  const sameColor = card.color === topCard.color;
+  const sameValue = card.type === "number" && topCard.type === "number" && card.value === topCard.value;
+  const sameAction = card.type !== "number" && card.type === topCard.type;
+  return sameColor || sameValue || sameAction;
+}
+
 export const initializeGame = (players: Player[], hostId: string, handSize: number = 7): GameState => {
   let deck = generateDeck();
 
@@ -82,10 +92,7 @@ export const playCard = (game: GameState, playerId: string, cardId: string, chos
   const topCard = game.discardPile[game.discardPile.length - 1];
 
   if (card.type !== "wild" && card.type !== "wild_draw4") {
-    const sameColor = card.color === topCard.color;
-    const sameValue = card.type === "number" && topCard.type === "number" && card.value === topCard.value;
-    const sameAction = card.type !== "number" && card.type === topCard.type;
-    if (!sameColor && !sameValue && !sameAction) return game;
+    if (!isValidPlay(card, topCard)) return game;
   }
 
   const newPlayers = game.players.map((p) => ({ ...p, isCurrentTurn: false }));

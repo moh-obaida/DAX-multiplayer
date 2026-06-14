@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Button from "../components/UI/Button";
 import CardPanel from "../components/UI/CardPanel";
 import PageShell from "../components/layout/PageShell";
@@ -16,41 +17,79 @@ const RECENT = [
   { id: "g3", vs: ["KhalidDAX", "LaylaM", "YusufG"], result: "win" as const, ago: "2d ago" },
 ];
 
+const GUEST_STATS = { totalGames: 12, wins: 7, losses: 5, currentStreak: 2 };
+
 export default function ProfilePage() {
   const user = useAuthStore((s) => s.user);
-  const stats = user?.stats ?? { totalGames: 0, wins: 0, losses: 0, currentStreak: 0 };
-  const winRate = stats.totalGames ? Math.round((stats.wins / stats.totalGames) * 100) : 0;
+  const updateUser = useAuthStore((s) => s.updateUser);
+  const [editingName, setEditingName] = useState(false);
+  const [nameDraft, setNameDraft] = useState(user?.username ?? "");
 
-  if (!user) {
-    return (
-      <PageShell title="Profile">
-        <CardPanel><p className="text-ivory-muted mb-4">Sign in to view your profile and stats.</p><Button to="/login" variant="primary">Log In</Button></CardPanel>
-      </PageShell>
-    );
-  }
+  const stats = user?.stats ?? GUEST_STATS;
+  const winRate = stats.totalGames ? Math.round((stats.wins / stats.totalGames) * 100) : 0;
+  const isGuest = !user;
+
+  const saveUsername = () => {
+    if (user && nameDraft.trim().length >= 2) {
+      updateUser({ username: nameDraft.trim(), displayName: nameDraft.trim() });
+    }
+    setEditingName(false);
+  };
 
   return (
     <PageShell maxWidth="full">
+      {isGuest && (
+        <div className="mb-6 p-4 rounded-xl border border-gold/30 bg-gold/5 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div>
+            <p className="font-display text-gold text-sm uppercase tracking-wider">Guest Profile Preview</p>
+            <p className="text-sm text-ivory-muted mt-1">Sign in to save stats, avatars, and achievements.</p>
+          </div>
+          <div className="flex gap-3">
+            <Button variant="primary" to="/login">Log In</Button>
+            <Button variant="secondary" to="/register">Create Account</Button>
+          </div>
+        </div>
+      )}
+
       <div className="grid lg:grid-cols-3 gap-8">
         <div className="space-y-6">
-          <CardPanel glow highlight>
+          <CardPanel glow highlight={!isGuest}>
             <div className="text-center">
               <div className="w-24 h-24 mx-auto rounded-2xl bg-gold-shine flex items-center justify-center font-display text-4xl font-black text-emerald-dark mb-4 shadow-gold">
-                {user.username[0]?.toUpperCase()}
+                {(user?.username ?? "G")[0]?.toUpperCase()}
               </div>
-              <h1 className="font-display text-2xl font-bold text-ivory">{user.username}</h1>
-              <p className="text-ivory-dim text-sm">{user.email}</p>
+              {editingName && user ? (
+                <div className="flex gap-2 justify-center mb-2">
+                  <input className="dax-input text-center max-w-[160px]" value={nameDraft} onChange={(e) => setNameDraft(e.target.value)} maxLength={10} />
+                  <Button variant="primary" size="sm" onClick={saveUsername}>Save</Button>
+                </div>
+              ) : (
+                <h1 className="font-display text-2xl font-bold text-ivory">{user?.username ?? "Guest Player"}</h1>
+              )}
+              <p className="text-green text-xs uppercase tracking-wider mt-1">Online</p>
+              {user?.email && <p className="text-ivory-dim text-sm mt-1">{user.email}</p>}
             </div>
             <div className="mt-6">
               <p className="text-xs uppercase tracking-widest text-gold mb-3">Avatar</p>
               <div className="grid grid-cols-3 gap-2">
                 {AVATARS.map((a) => (
-                  <button key={a} type="button" className={`aspect-square rounded-lg border-2 flex items-center justify-center text-lg font-bold ${user.avatarId === a ? "border-gold bg-gold/15 text-gold" : "border-gold/20 text-ivory-dim hover:border-gold/40"}`}>
+                  <button
+                    key={a}
+                    type="button"
+                    disabled={isGuest}
+                    onClick={() => user && updateUser({ avatarId: a })}
+                    className={`aspect-square rounded-lg border-2 flex items-center justify-center text-lg font-bold ${(user?.avatarId ?? "avatar-1") === a ? "border-gold bg-gold/15 text-gold" : "border-gold/20 text-ivory-dim hover:border-gold/40"} ${isGuest ? "opacity-60 cursor-not-allowed" : ""}`}
+                  >
                     {a.split("-")[1]}
                   </button>
                 ))}
               </div>
             </div>
+            {user && (
+              <Button variant="ghost" size="sm" fullWidth className="mt-4" onClick={() => { setNameDraft(user.username); setEditingName(true); }}>
+                Edit Username
+              </Button>
+            )}
           </CardPanel>
           <Button variant="secondary" fullWidth to="/settings">Account Settings</Button>
         </div>

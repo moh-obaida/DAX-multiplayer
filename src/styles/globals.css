@@ -242,6 +242,21 @@
   .menu-float-card {
     animation: menuCardFloat 6s ease-in-out infinite;
   }
+
+  /* Settings-applied UI modes */
+  html.dax-light-mode body {
+    @apply bg-ivory text-emerald-dark;
+    background-image: none;
+  }
+
+  html.dax-font-large {
+    font-size: 18px;
+  }
+
+  html.dax-colorblind .playing-card-red { outline: 2px dashed #fff; }
+  html.dax-colorblind .playing-card-blue { outline: 2px dotted #fff; }
+  html.dax-colorblind .playing-card-green { outline: 2px solid #fff; }
+  html.dax-colorblind .playing-card-yellow { outline: 2px double #fff; }
 }
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }

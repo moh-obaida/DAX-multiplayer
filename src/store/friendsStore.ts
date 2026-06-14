@@ -23,6 +23,7 @@ interface FriendsStore {
   blocked: string[];
   searchQuery: string;
   setSearchQuery: (q: string) => void;
+  sendFriendRequest: (username: string) => "sent" | "exists" | "blocked" | "self" | "duplicate";
   acceptRequest: (id: string) => void;
   rejectRequest: (id: string) => void;
   blockUser: (username: string) => void;
@@ -36,7 +37,7 @@ const MOCK_FRIENDS: Friend[] = [
   { id: "f4", username: "KhalidDAX", avatarId: "avatar-5", status: "offline", mutualFriends: 2 },
 ];
 
-export const useFriendsStore = create<FriendsStore>((set) => ({
+export const useFriendsStore = create<FriendsStore>((set, get) => ({
   friends: MOCK_FRIENDS,
   incoming: [
     { id: "r1", username: "LaylaM", avatarId: "avatar-6", direction: "incoming", sentAt: Date.now() - 3600000 },
@@ -46,19 +47,53 @@ export const useFriendsStore = create<FriendsStore>((set) => ({
   ],
   blocked: [],
   searchQuery: "",
+
   setSearchQuery: (q) => set({ searchQuery: q }),
+
+  sendFriendRequest: (username) => {
+    const trimmed = username.trim();
+    if (!trimmed) return "self";
+    const state = get();
+    if (state.blocked.includes(trimmed)) return "blocked";
+    if (state.friends.some((f) => f.username.toLowerCase() === trimmed.toLowerCase())) return "exists";
+    if (state.outgoing.some((r) => r.username.toLowerCase() === trimmed.toLowerCase())) return "duplicate";
+    if (state.incoming.some((r) => r.username.toLowerCase() === trimmed.toLowerCase())) return "duplicate";
+
+    set({
+      outgoing: [...state.outgoing, {
+        id: `req-${Date.now()}`,
+        username: trimmed,
+        avatarId: "avatar-8",
+        direction: "outgoing",
+        sentAt: Date.now(),
+      }],
+    });
+    return "sent";
+  },
+
   acceptRequest: (id) => set((s) => {
     const req = s.incoming.find((r) => r.id === id);
     if (!req) return s;
     return {
       incoming: s.incoming.filter((r) => r.id !== id),
-      friends: [...s.friends, { id: req.id, username: req.username, avatarId: req.avatarId, status: "online", mutualFriends: 0 }],
+      friends: [...s.friends, {
+        id: req.id,
+        username: req.username,
+        avatarId: req.avatarId,
+        status: "online",
+        mutualFriends: 0,
+      }],
     };
   }),
+
   rejectRequest: (id) => set((s) => ({ incoming: s.incoming.filter((r) => r.id !== id) })),
+
   blockUser: (username) => set((s) => ({
     blocked: [...s.blocked, username],
     friends: s.friends.filter((f) => f.username !== username),
+    incoming: s.incoming.filter((r) => r.username !== username),
+    outgoing: s.outgoing.filter((r) => r.username !== username),
   })),
+
   unblockUser: (username) => set((s) => ({ blocked: s.blocked.filter((b) => b !== username) })),
 }));

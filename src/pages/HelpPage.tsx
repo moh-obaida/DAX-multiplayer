@@ -1,4 +1,7 @@
+import { useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import CardPanel from "../components/UI/CardPanel";
+import PageShell from "../components/layout/PageShell";
 
 function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
   return (
@@ -27,7 +30,18 @@ function ScoringRow({ card, points }: { card: string; points: string }) {
 }
 
 export default function HelpPage() {
+  const [params] = useSearchParams();
+
+  useEffect(() => {
+    const section = params.get("section");
+    if (section) {
+      const el = document.getElementById(section);
+      el?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [params]);
+
   return (
+    <PageShell title="Help Center" subtitle="Rules, scoring, FAQ, and support." maxWidth="full">
     <article>
       <header className="mb-10">
         <p className="text-gold text-xs uppercase tracking-[0.3em] mb-2">DAX Help Center</p>
@@ -216,6 +230,7 @@ export default function HelpPage() {
         </ul>
       </Section>
     </article>
+    </PageShell>
   );
 }
 

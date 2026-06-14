@@ -2,12 +2,14 @@ import { Link, NavLink } from "react-router-dom";
 import DaxBrand from "../UI/DaxBrand";
 import Button from "../UI/Button";
 import { useAuthStore } from "../../store/authStore";
-import { getHelpUrl } from "../../utils/urls";
+import { getHelpPath, isExternalHelpUrl, getHelpUrl } from "../../utils/urls";
 
 const links = [
   { to: "/play", label: "Play" },
   { to: "/friends", label: "Friends" },
-  { href: getHelpUrl(), label: "Rules", external: true },
+  isExternalHelpUrl()
+    ? { href: getHelpUrl(), label: "Rules", external: true as const }
+    : { to: getHelpPath(), label: "Rules", external: false as const },
   { to: "/profile", label: "Profile" },
 ];
 
@@ -24,7 +26,7 @@ export default function Navbar() {
 
           <div className="hidden lg:flex items-center gap-1 bg-board/40 rounded-xl p-1 border border-gold/10">
             {links.map((l) =>
-              l.external ? (
+              "external" in l && l.external ? (
                 <a key={l.label} href={l.href} className="px-4 py-2 rounded-lg text-sm font-medium text-ivory-muted hover:text-gold transition-colors">
                   {l.label}
                 </a>

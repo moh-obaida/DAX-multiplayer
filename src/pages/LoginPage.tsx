@@ -23,7 +23,7 @@ export default function LoginPage() {
       stats: { totalGames: 42, wins: 28, losses: 14, currentStreak: 3 },
     });
     addToast("Welcome back!", "success");
-    navigate("/play");
+    navigate("/profile");
   };
 
   return (

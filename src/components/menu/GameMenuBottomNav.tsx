@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { getHelpUrl } from "../../utils/urls";
+import { getHelpPath, isExternalHelpUrl, getHelpUrl } from "../../utils/urls";
 import type { ComponentType } from "react";
 
 type NavId = "home" | "play" | "friends" | "achievements" | "rules" | "profile" | "settings";
@@ -9,7 +9,7 @@ interface NavItem {
   label: string;
   icon: ComponentType<{ active: boolean }>;
   to?: string;
-  href?: string;
+  externalHref?: string;
 }
 
 const NAV_ITEMS: NavItem[] = [
@@ -17,7 +17,13 @@ const NAV_ITEMS: NavItem[] = [
   { id: "play", label: "Play", to: "/play", icon: PlayIcon },
   { id: "friends", label: "Friends", to: "/friends", icon: FriendsIcon },
   { id: "achievements", label: "Badges", to: "/profile", icon: TrophyIcon },
-  { id: "rules", label: "Rules", href: getHelpUrl(), icon: BookIcon },
+  {
+    id: "rules",
+    label: "Rules",
+    to: isExternalHelpUrl() ? undefined : getHelpPath(),
+    externalHref: isExternalHelpUrl() ? getHelpUrl() : undefined,
+    icon: BookIcon,
+  },
   { id: "profile", label: "Profile", to: "/profile", icon: UserIcon },
   { id: "settings", label: "Settings", to: "/settings", icon: GearIcon },
 ];
@@ -42,9 +48,9 @@ export default function GameMenuBottomNav({ active }: Props) {
                 : "text-ivory/75 border border-transparent hover:text-ivory hover:bg-white/8 hover:border-gold/20"
               }`;
 
-            if (item.href) {
+            if (item.externalHref) {
               return (
-                <a key={item.id} href={item.href} className={className}>
+                <a key={item.id} href={item.externalHref} className={className}>
                   <Icon active={false} />
                   <span className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-wide truncate w-full text-center">{item.label}</span>
                 </a>

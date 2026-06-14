@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import AppLayout from "../components/layout/AppLayout";
 import HomePage from "../pages/HomePage";
 import LoginPage from "../pages/LoginPage";
@@ -9,12 +9,12 @@ import GamePage from "../pages/GamePage";
 import FriendsPage from "../pages/FriendsPage";
 import ProfilePage from "../pages/ProfilePage";
 import SettingsPage from "../pages/SettingsPage";
+import HelpPage from "../pages/HelpPage";
 
 export default function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Full-screen game menu — no website chrome */}
         <Route path="/" element={<HomePage />} />
 
         <Route element={<AppLayout />}>
@@ -25,6 +25,8 @@ export default function AppRouter() {
           <Route path="/friends" element={<FriendsPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/help" element={<HelpPage />} />
+          <Route path="/rules" element={<Navigate to="/help" replace />} />
         </Route>
 
         <Route path="/game/:gameId" element={<GamePage />} />

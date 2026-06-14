@@ -1,9 +1,11 @@
 import { Link } from "react-router-dom";
 import DaxBrand from "../UI/DaxBrand";
-import { getHelpUrl } from "../../utils/urls";
+import { getHelpPath, isExternalHelpUrl, getHelpUrl } from "../../utils/urls";
 
 export default function Footer() {
-  const help = getHelpUrl();
+  const helpInternal = getHelpPath();
+  const helpExternal = isExternalHelpUrl() ? getHelpUrl() : null;
+
   return (
     <footer className="relative mt-auto border-t border-gold/10 bg-emerald-dark">
       <div className="absolute inset-0 game-grid-bg opacity-30 pointer-events-none" />
@@ -24,16 +26,26 @@ export default function Footer() {
           <div>
             <h4 className="font-display text-xs uppercase tracking-widest text-gold mb-4">Support</h4>
             <ul className="space-y-2 text-sm text-ivory-muted">
-              <li><a href={help} className="hover:text-gold transition-colors">Help Center</a></li>
-              <li><a href={`${help}#playing`} className="hover:text-gold transition-colors">Rules</a></li>
-              <li><a href={`${help}#faq`} className="hover:text-gold transition-colors">FAQ</a></li>
+              {helpExternal ? (
+                <>
+                  <li><a href={helpExternal} className="hover:text-gold transition-colors">Help Center</a></li>
+                  <li><a href={`${helpExternal}#playing`} className="hover:text-gold transition-colors">Rules</a></li>
+                </>
+              ) : (
+                <>
+                  <li><Link to={helpInternal} className="hover:text-gold transition-colors">Help Center</Link></li>
+                  <li><Link to={`${helpInternal}#playing`} className="hover:text-gold transition-colors">Rules</Link></li>
+                  <li><Link to={`${helpInternal}#faq`} className="hover:text-gold transition-colors">FAQ</Link></li>
+                </>
+              )}
             </ul>
           </div>
           <div>
-            <h4 className="font-display text-xs uppercase tracking-widest text-gold mb-4">Legal</h4>
+            <h4 className="font-display text-xs uppercase tracking-widest text-gold mb-4">Account</h4>
             <ul className="space-y-2 text-sm text-ivory-muted">
-              <li><a href={`${help}#privacy`} className="hover:text-gold transition-colors">Privacy</a></li>
-              <li><a href={`${help}#terms`} className="hover:text-gold transition-colors">Terms</a></li>
+              <li><Link to="/profile" className="hover:text-gold transition-colors">Profile</Link></li>
+              <li><Link to="/settings" className="hover:text-gold transition-colors">Settings</Link></li>
+              <li><Link to="/login" className="hover:text-gold transition-colors">Log In</Link></li>
             </ul>
           </div>
           <div>

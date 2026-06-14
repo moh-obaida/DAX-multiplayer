@@ -37,7 +37,7 @@ export default function RegisterPage() {
       stats: { totalGames: 0, wins: 0, losses: 0, currentStreak: 0 },
     });
     addToast("Account created — good luck at the table!", "success");
-    navigate("/play");
+    navigate("/profile");
   };
 
   return (
