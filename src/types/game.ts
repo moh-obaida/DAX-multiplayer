@@ -14,8 +14,9 @@ export interface Player {
   avatarId: string;
   handSize: number;
   hand: Card[];
-  status: "active" | "away" | "disconnected";
+  status: "active" | "away" | "disconnected" | "finished";
   isCurrentTurn: boolean;
+  hasCalledDax: boolean;
   wins: number;
   losses: number;
 }
@@ -29,10 +30,13 @@ export interface GameState {
   playDirection: "clockwise" | "counterClockwise";
   gameStatus: "waiting" | "playing" | "finished";
   winners: string[];
+  finishOrder: string[];
   hostId: string;
   createdAt: number;
   settings: GameSettings;
   turnTimer: number;
+  /** Stacked draw penalty passed to next player (+2 / +4 stacking). */
+  pendingDraw: number;
 }
 
 export interface GameSettings {
@@ -43,6 +47,7 @@ export interface GameSettings {
     stackingEnabled: boolean;
     forcingPlayEnabled: boolean;
     cardChallengeEnabled: boolean;
+    daxCallEnabled: boolean;
   };
   turnTimer: 30;
   autoDrawTimeout: 5;

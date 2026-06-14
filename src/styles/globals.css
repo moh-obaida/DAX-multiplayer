@@ -1,94 +1,98 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Orbitron:wght@500;600;700;800;900&display=swap");
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+@layer base {
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    @apply bg-emerald text-ivory font-sans min-h-screen antialiased;
+    background-image: theme("backgroundImage.emerald-mesh");
+  }
 }
 
-body {
-  background-color: #051109;
-  color: #ffffff;
-  font-family: "Inter", sans-serif;
+@layer components {
+  .game-grid-bg {
+    background-size: 48px 48px;
+    @apply bg-grid-pattern;
+  }
+
+  .dax-gold-line {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #9a7b1a 15%, #d4af37 50%, #9a7b1a 85%, transparent);
+  }
+
+  .dax-text-gradient {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, #f5f1e8 20%, #d4af37 60%, #f0d060 100%);
+  }
+
+  .dax-panel {
+    @apply rounded-xl border border-gold/20 bg-board/60 backdrop-blur-md shadow-panel;
+    background: linear-gradient(145deg, rgba(26,58,46,0.9) 0%, rgba(15,40,24,0.95) 100%);
+  }
+
+  .dax-panel-glow {
+    @apply dax-panel relative overflow-hidden;
+  }
+  .dax-panel-glow::before {
+    content: "";
+    @apply absolute inset-0 pointer-events-none;
+    background: radial-gradient(ellipse at top, rgba(212,175,55,0.08) 0%, transparent 60%);
+  }
+
+  .dax-btn-primary {
+    @apply relative overflow-hidden font-display font-semibold tracking-wide uppercase text-sm;
+    @apply bg-gold-shine text-emerald-dark px-6 py-3 rounded-lg;
+    @apply shadow-gold-sm hover:shadow-gold transition-all duration-300;
+    @apply hover:scale-[1.02] active:scale-[0.98];
+  }
+
+  .dax-btn-secondary {
+    @apply font-display font-medium tracking-wide uppercase text-sm;
+    @apply border border-gold/50 text-gold px-6 py-3 rounded-lg;
+    @apply hover:bg-gold/10 hover:border-gold hover:shadow-gold-sm transition-all duration-300;
+  }
+
+  .dax-stat-value {
+    @apply font-display text-2xl font-bold text-gold tabular-nums;
+  }
+
+  .dax-felt {
+    @apply bg-board-felt;
+    background-image:
+      radial-gradient(ellipse at 50% 30%, rgba(212,175,55,0.06) 0%, transparent 55%),
+      radial-gradient(ellipse at 50% 100%, rgba(0,0,0,0.4) 0%, transparent 70%),
+      url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  }
+
+  .dax-corner-accent {
+    @apply absolute w-16 h-16 pointer-events-none opacity-30;
+    border-color: theme("colors.gold.DEFAULT");
+  }
+  .dax-corner-accent.tl { @apply top-0 left-0 border-t-2 border-l-2 rounded-tl-xl; }
+  .dax-corner-accent.tr { @apply top-0 right-0 border-t-2 border-r-2 rounded-tr-xl; }
+  .dax-corner-accent.bl { @apply bottom-0 left-0 border-b-2 border-l-2 rounded-bl-xl; }
+  .dax-corner-accent.br { @apply bottom-0 right-0 border-b-2 border-r-2 rounded-br-xl; }
+
+  .dax-input {
+    @apply w-full bg-emerald-dark/80 border border-gold/25 rounded-lg px-4 py-3;
+    @apply text-ivory placeholder:text-ivory-dim focus:outline-none focus:border-gold/60 focus:shadow-gold-sm transition-all;
+  }
+
+  .dax-badge {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium uppercase tracking-wider;
+    @apply bg-gold/10 border border-gold/30 text-gold;
+  }
+
+  .dax-status-online { @apply w-2 h-2 rounded-full bg-green shadow-[0_0_8px_rgba(67,160,71,0.8)]; }
+  .dax-status-away { @apply w-2 h-2 rounded-full bg-yellow shadow-[0_0_8px_rgba(253,216,53,0.8)]; }
+  .dax-status-offline { @apply w-2 h-2 rounded-full bg-ivory-dim; }
 }
 
-/* Subtle felt-table grain — matches logo texture */
-.dax-surface {
-  background-color: #051109;
-  background-image:
-    url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-}
-
-.dax-vignette::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: radial-gradient(ellipse at 50% 45%, transparent 35%, rgba(0, 0, 0, 0.45) 100%);
-}
-
-.dax-gold-line {
-  height: 1px;
-  background: linear-gradient(90deg, transparent, #B38728 20%, #F9D976 50%, #B38728 80%, transparent);
-  opacity: 0.6;
-}
-
-.dax-brand-icon {
-  height: 2rem;
-  width: auto;
-  opacity: 0.92;
-  filter: drop-shadow(0 0 6px rgba(212, 175, 55, 0.25));
-}
-
-.dax-brand-wordmark {
-  height: 1.125rem;
-  width: auto;
-  opacity: 0.88;
-}
-
-.dax-brand-watermark {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.dax-brand-watermark img {
-  width: min(420px, 55vw);
-  height: auto;
-  opacity: 0.045;
-  filter: saturate(0.8);
-}
-
-.dax-loading-pulse {
-  animation: dax-pulse 2.4s ease-in-out infinite;
-}
-
-@keyframes dax-pulse {
-  0%, 100% { opacity: 0.7; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.02); }
-}
-
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #0a1a12;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #1e3d2a;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #B38728;
-}
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #071810; }
+::-webkit-scrollbar-thumb { background: #1a3a2e; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #d4af37; }
