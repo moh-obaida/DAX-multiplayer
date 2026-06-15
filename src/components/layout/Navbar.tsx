@@ -5,7 +5,7 @@ import { useAuthStore } from "../../store/authStore";
 import { getHelpPath, isExternalHelpUrl, getHelpUrl } from "../../utils/urls";
 
 const links = [
-  { to: "/play", label: "Play" },
+  { to: "/lobby", label: "Play" },
   { to: "/friends", label: "Friends" },
   isExternalHelpUrl()
     ? { href: getHelpUrl(), label: "Rules", external: true as const }
@@ -58,7 +58,7 @@ export default function Navbar() {
                 <Button variant="secondary" size="sm" to="/register" className="hidden sm:inline-flex">Sign up</Button>
               </>
             )}
-            <Button variant="primary" size="sm" to="/play">Play Now</Button>
+            <Button variant="primary" size="sm" to="/lobby">Play Now</Button>
           </div>
         </div>
       </div>

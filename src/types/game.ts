@@ -14,16 +14,51 @@ export interface Player {
   avatarId: string;
   handSize: number;
   hand: Card[];
-  status: "active" | "away" | "disconnected" | "finished";
+  status: "active" | "away" | "disconnected" | "finished" | "spectator";
   isCurrentTurn: boolean;
   hasCalledDax: boolean;
+  hasCalledUno: boolean;
+  afkStrikes: number;
   wins: number;
   losses: number;
   isBot?: boolean;
+  isHost?: boolean;
+}
+
+export interface GameSettings {
+  minPlayers: 2;
+  maxPlayers: 4;
+  handSize: 7 | 10 | 14 | 21;
+  houseRules: {
+    plus2Stack: boolean;
+    plus4Stack: boolean;
+    cardChallengeEnabled: boolean;
+    daxCallEnabled: boolean;
+    afkRule: boolean;
+    aiReplacement: boolean;
+  };
+  turnTimer: 30;
+  autoDrawTimeout: 5;
+}
+
+export interface PendingWildPick {
+  playerId: string;
+  cardId: string;
+  deadline: number;
+}
+
+export interface GameMessage {
+  id: string;
+  playerId: string;
+  playerName: string;
+  type: "emote" | "phrase" | "system";
+  content: string;
+  timestamp: number;
 }
 
 export interface GameState {
   id: string;
+  roomCode: string;
   players: Player[];
   deck: Card[];
   discardPile: Card[];
@@ -36,23 +71,20 @@ export interface GameState {
   createdAt: number;
   settings: GameSettings;
   turnTimer: number;
-  /** Stacked draw penalty passed to next player (+2 / +4 stacking). */
   pendingDraw: number;
+  activeColor: CardColor | null;
+  pendingWildPick: PendingWildPick | null;
+  drawStackType: "draw2" | "wild_draw4" | null;
+  messages: GameMessage[];
+  spectatorCount: number;
 }
 
-export interface GameSettings {
-  minPlayers: 2;
-  maxPlayers: 8;
-  handSize: 7 | 10 | 14 | 21;
-  houseRules: {
-    stackingEnabled: boolean;
-    forcingPlayEnabled: boolean;
-    cardChallengeEnabled: boolean;
-    daxCallEnabled: boolean;
-  };
-  turnTimer: 30;
-  autoDrawTimeout: 5;
-  difficulty: "easy" | "normal" | "veteran" | "heroic";
+export interface RoomConfig {
+  code: string;
+  hostId: string;
+  maxPlayers: number;
+  handSize: number;
+  settings: GameSettings["houseRules"];
 }
 
 export interface User {
@@ -75,4 +107,12 @@ export interface Achievement {
   description: string;
   unlocked: boolean;
   unlockedAt?: number;
+}
+
+export interface ScoreEntry {
+  playerId: string;
+  playerName: string;
+  points: number;
+  cardsRemaining: number;
+  placement: number;
 }

@@ -2,10 +2,10 @@ export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     colors: {
-      red: "#e53935",
-      yellow: "#fdd835",
-      green: "#43a047",
-      blue: "#1e88e5",
+      red: "#F44336",
+      yellow: "#FFD54F",
+      green: "#4CAF50",
+      blue: "#2196F3",
       white: "#FFFFFF",
       black: "#000000",
       emerald: {
@@ -32,17 +32,17 @@ export default {
         dim: "#6b655c",
       },
       card: {
-        red: "#e53935",
-        yellow: "#fdd835",
-        green: "#43a047",
-        blue: "#1e88e5",
+        red: "#F44336",
+        yellow: "#FFD54F",
+        green: "#4CAF50",
+        blue: "#2196F3",
       },
       transparent: "transparent",
     },
     extend: {
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
-        display: ["Orbitron", "Inter", "sans-serif"],
+        sans: ["Hanken Grotesk", "system-ui", "sans-serif"],
+        display: ["Space Grotesk", "system-ui", "sans-serif"],
         mono: ["JetBrains Mono", "monospace"],
       },
       backgroundImage: {
