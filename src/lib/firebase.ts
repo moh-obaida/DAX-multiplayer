@@ -12,9 +12,10 @@ import {
   type DatabaseReference,
 } from "firebase/database";
 import type { GameState, Player, CardColor } from "../types/game";
-import type { FirebaseRoom, FirebasePlayer, ChatMessage } from "../types/firebase";
+import type { FirebaseRoom, FirebaseRoomSettings, FirebasePlayer, ChatMessage } from "../types/firebase";
 import { DEFAULT_ROOM_SETTINGS, generateRoomCode } from "./constants";
 import { gameStateToFirebase, firebaseToGameState, initializeGame, syncPlayersHands } from "./gameLogic";
+import { analyticsEvents } from "./analytics";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "",
@@ -66,11 +67,19 @@ function roomRef(code: string): DatabaseReference {
 
 const PLAYER_COLORS: CardColor[] = ["red", "blue", "green", "yellow"];
 
+let lastCreateRoomAt = 0;
+const CREATE_ROOM_COOLDOWN_MS = 30_000;
+
 export async function createRoom(
   hostId: string,
   hostName: string,
-  settings?: Partial<typeof DEFAULT_ROOM_SETTINGS>
+  settings?: Partial<FirebaseRoomSettings>
 ): Promise<FirebaseRoom> {
+  const now = Date.now();
+  if (now - lastCreateRoomAt < CREATE_ROOM_COOLDOWN_MS) {
+    throw new Error("RATE_LIMIT");
+  }
+  lastCreateRoomAt = now;
   const code = generateRoomCode();
   const room: FirebaseRoom = {
     code,
@@ -102,6 +111,7 @@ export async function createRoom(
     localRooms[code] = room;
     persistLocalRooms();
   }
+  void analyticsEvents.roomCreated(code, room.settings.maxPlayers);
   return room;
 }
 
@@ -187,6 +197,7 @@ export async function startGameInRoom(code: string, players: Player[], hostId: s
       persistLocalRooms();
     }
   }
+  void analyticsEvents.gameStarted(players.length);
   return game;
 }
 
@@ -209,6 +220,10 @@ export async function submitPlay(code: string, game: GameState): Promise<void> {
       };
       persistLocalRooms();
     }
+  }
+  if (status === "ended" && game.winners[0]) {
+    const durationSec = Math.round((Date.now() - game.createdAt) / 1000);
+    void analyticsEvents.gameEnded(game.winners[0], durationSec);
   }
 }
 

@@ -1,22 +1,24 @@
-import { useState, useEffect } from "react";
+import { lazy, Suspense, useState, useEffect } from "react";
 import { Settings, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { PlayerSeatPosition } from "../../types/ui";
 import { useGame } from "../../hooks/useGame";
 import { useTimer } from "../../hooks/useTimer";
 import { useToastStore } from "../../store/toastStore";
+import { copy } from "../../lib/copy";
 import TurnTimer from "./TurnTimer";
 import PlayerArea from "./PlayerArea";
 import CardHand from "./CardHand";
 import DiscardPile from "./DiscardPile";
 import DrawDeck from "./DrawDeck";
 import UNOButton from "./UNOButton";
-import WildColorPicker from "../Modals/WildColorPicker";
-import GameEnd from "../Modals/GameEnd";
 import GameSettingsModal from "../Modals/GameSettingsModal";
 import EmoteMenu from "../Common/EmoteMenu";
 import { useGameStore } from "../../store/gameStore";
 import { runBotTurn } from "../../utils/botAI";
+
+const WildColorPicker = lazy(() => import("../Modals/WildColorPicker"));
+const GameEnd = lazy(() => import("../Modals/GameEnd"));
 
 interface GameBoardProps {
   localPlayerId: string;
@@ -63,7 +65,7 @@ export default function GameBoard({ localPlayerId, roomCode, onRematch }: GameBo
     onExpire: () => {
       if (isMyTurn) {
         handleAfk(localPlayerId);
-        addToast("Time's up — turn skipped", "info");
+        addToast(copy.toast.timeUp, "info");
       }
     },
   });
@@ -78,21 +80,18 @@ export default function GameBoard({ localPlayerId, roomCode, onRematch }: GameBo
   const handleUno = () => {
     if (localPlayer?.hand.length === 1) {
       callUno();
-      addToast("UNO! called", "success");
+      addToast(copy.toast.unoCalled, "success");
     } else if ((localPlayer?.hand.length ?? 0) === 2) {
-      addToast("Wait until you have 1 card, then play UNO!", "info");
+      addToast(copy.toast.unoEarly, "info");
     } else {
-      addToast("You can only call UNO with one card left", "error");
+      addToast(copy.toast.unoOnlyOne, "error");
     }
   };
 
   const handlePlay = (cardId: string) => {
-    const card = localPlayer?.hand.find((c) => c.id === cardId);
-    if (!card) return;
+    if (!localPlayer?.hand.find((c) => c.id === cardId)) return;
     const ok = playCard(cardId);
-    if (!ok) {
-      addToast("Invalid card — match color, number, or action", "error");
-    }
+    if (!ok) addToast(copy.toast.invalidCard, "error");
   };
 
   return (
@@ -102,7 +101,7 @@ export default function GameBoard({ localPlayerId, roomCode, onRematch }: GameBo
           <ArrowLeft size={16} />
           Lobby
         </Link>
-        <span className="font-display text-gold font-bold tracking-wider">DAX</span>
+        <img src="/logos/dax-wordmark.png" alt="DAX" className="h-5 w-auto" />
         <button type="button" onClick={() => setShowSettings(true)} aria-label="Game settings" className="text-ivory-dim hover:text-gold">
           <Settings size={20} />
         </button>
@@ -120,7 +119,7 @@ export default function GameBoard({ localPlayerId, roomCode, onRematch }: GameBo
             canCallOut={!isMyTurn && p.hand.length === 1 && !p.hasCalledUno}
             onCallOut={() => {
               callOutUno(p.id);
-              addToast(`Called out ${p.name}!`, "success");
+              addToast(copy.toast.unoCalledOut(p.name), "success");
             }}
           />
         ))}
@@ -132,8 +131,8 @@ export default function GameBoard({ localPlayerId, roomCode, onRematch }: GameBo
 
         {game.spectatorCount > 0 && (
           <div className="absolute top-4 right-4 flex items-center gap-1 text-ivory-dim text-sm">
-            <span>👁️</span>
-            <span>{game.spectatorCount}</span>
+            <span aria-hidden>👁</span>
+            <span className="tabular-nums dax-tnum">{game.spectatorCount}</span>
           </div>
         )}
 
@@ -164,14 +163,20 @@ export default function GameBoard({ localPlayerId, roomCode, onRematch }: GameBo
       </div>
 
       {showWildPicker && game.pendingWildPick && (
-        <WildColorPicker
-          deadline={game.pendingWildPick.deadline}
-          onSelect={(color) => pickWildColor(localPlayerId, game.pendingWildPick!.cardId, color)}
-          onTimeout={() => pickWildColor(localPlayerId, game.pendingWildPick!.cardId, "red")}
-        />
+        <Suspense fallback={null}>
+          <WildColorPicker
+            deadline={game.pendingWildPick.deadline}
+            onSelect={(color) => pickWildColor(localPlayerId, game.pendingWildPick!.cardId, color)}
+            onTimeout={() => pickWildColor(localPlayerId, game.pendingWildPick!.cardId, "red")}
+          />
+        </Suspense>
       )}
 
-      {isFinished && <GameEnd game={game} localPlayerId={localPlayerId} onRematch={onRematch} />}
+      {isFinished && (
+        <Suspense fallback={null}>
+          <GameEnd game={game} localPlayerId={localPlayerId} onRematch={onRematch} />
+        </Suspense>
+      )}
 
       <GameSettingsModal open={showSettings} onClose={() => setShowSettings(false)} settings={game.settings.houseRules} />
 

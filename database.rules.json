@@ -1,0 +1,20 @@
+{
+  "rules": {
+    "rooms": {
+      ".indexOn": ["status", "createdAt", "lastActivity"],
+      "$roomCode": {
+        ".read": "auth != null",
+        ".write": "auth != null",
+        ".validate": "newData.hasChildren(['code','hostId','players','settings','status'])",
+        "status": {
+          ".validate": "newData.isString() && (newData.val() == 'waiting' || newData.val() == 'playing' || newData.val() == 'ended')"
+        },
+        "players": {
+          ".validate": "newData.hasChildren() && newData.numChildren() <= 4"
+        }
+      }
+    },
+    ".read": false,
+    ".write": false
+  }
+}

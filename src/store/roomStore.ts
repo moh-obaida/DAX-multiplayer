@@ -1,4 +1,7 @@
 import { create } from "zustand";
+/**
+ * @deprecated Use lib/firebase.ts for room create/join. Kept for offline fallback only.
+ */
 import type { HandSizeOption } from "../config/daxRules";
 import { defaultHouseRules } from "../config/daxRules";
 import { getStoredRoom, removeStoredRoom, saveRoom } from "../utils/roomStorage";

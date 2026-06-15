@@ -1,4 +1,9 @@
-@import url("https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap");
+@import "./tokens/fonts.css";
+@import "./tokens/colors.css";
+@import "./tokens/typography.css";
+@import "./tokens/spacing.css";
+@import "./tokens/effects.css";
+@import "./tokens/base.css";
 
 @tailwind base;
 @tailwind components;
@@ -54,15 +59,25 @@
 
   .dax-btn-primary {
     @apply relative overflow-hidden font-display font-semibold tracking-wide uppercase text-sm;
-    @apply bg-gold-shine text-emerald-dark px-6 py-3 rounded-lg;
-    @apply shadow-gold-sm hover:shadow-gold transition-all duration-300;
-    @apply hover:scale-[1.02] active:scale-[0.98];
+    background: var(--grad-gold);
+    @apply text-emerald-dark px-6 py-3 rounded-lg;
+    @apply shadow-gold-sm transition-all;
+    transition-duration: var(--dur-fast);
+    transition-timing-function: var(--ease-out);
+    @apply hover:scale-[1.02] active:scale-[0.98] active:translate-y-px;
   }
 
   .dax-btn-secondary {
     @apply font-display font-medium tracking-wide uppercase text-sm;
     @apply border border-gold/50 text-gold px-6 py-3 rounded-lg;
-    @apply hover:bg-gold/10 hover:border-gold hover:shadow-gold-sm transition-all duration-300;
+    transition-duration: var(--dur-fast);
+    @apply hover:bg-gold/10 hover:border-gold hover:shadow-gold-sm;
+  }
+
+  .tabular-nums,
+  .dax-tnum {
+    font-variant-numeric: tabular-nums;
+    font-family: var(--font-num);
   }
 
   .dax-stat-value {
@@ -253,10 +268,18 @@
     font-size: 18px;
   }
 
-  html.dax-colorblind .playing-card-red::after { content: "R"; }
-  html.dax-colorblind .playing-card-blue::after { content: "B"; }
-  html.dax-colorblind .playing-card-green::after { content: "G"; }
-  html.dax-colorblind .playing-card-yellow::after { content: "Y"; }
+  html.dax-colorblind .playing-card-red::after { content: "✚"; }
+  html.dax-colorblind .playing-card-blue::after { content: "●"; }
+  html.dax-colorblind .playing-card-green::after { content: "▲"; }
+  html.dax-colorblind .playing-card-yellow::after { content: "◆"; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
 
   @keyframes fadeIn {
     from { opacity: 0; }

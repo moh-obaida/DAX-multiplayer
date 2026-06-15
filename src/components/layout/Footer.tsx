@@ -36,6 +36,7 @@ export default function Footer() {
                   <li><Link to={helpInternal} className="hover:text-gold transition-colors">Help Center</Link></li>
                   <li><Link to={`${helpInternal}#playing`} className="hover:text-gold transition-colors">Rules</Link></li>
                   <li><Link to={`${helpInternal}#faq`} className="hover:text-gold transition-colors">FAQ</Link></li>
+                  <li><Link to="/about" className="hover:text-gold transition-colors">About</Link></li>
                 </>
               )}
             </ul>

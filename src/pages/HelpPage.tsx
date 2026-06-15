@@ -123,8 +123,8 @@ export default function HelpPage() {
 
       <Section id="timer" title="Turn timer">
         <p>
-          Each turn has a <strong className="text-ivory">30-second timer</strong> shown in the game navbar.
-          The bar turns yellow below 20 seconds and red below 10.
+          Each turn has a <strong className="text-ivory">30-second timer</strong> shown at the top of the board.
+          The bar turns yellow below 15 seconds and red below 5.
         </p>
         <ul className="list-disc list-inside space-y-2">
           <li>If time runs out, you automatically draw one card and your turn ends.</li>

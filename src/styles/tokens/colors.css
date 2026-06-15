@@ -1,0 +1,83 @@
+/* ============================================================
+   DAX — Color Tokens
+   Premium emerald + gold card-game palette
+   ============================================================ */
+
+:root {
+  /* ---- Brand core (from brand guidelines) ---- */
+  --dax-emerald-900: #0a1f12; /* deepest shadow green */
+  --dax-emerald-800: #0f2818; /* PRIMARY background (Dark Emerald) */
+  --dax-emerald-700: #143324; /* raised surface */
+  --dax-emerald-600: #1a3a2e; /* Board Green (game felt) */
+  --dax-emerald-500: #235041; /* hover / border green */
+  --dax-emerald-400: #347a5f; /* active accent green */
+  --dax-emerald-300: #4fa37f; /* success / progress green */
+
+  /* ---- Gold scale (accent) ---- */
+  --dax-gold-700: #9c7c1f; /* pressed gold */
+  --dax-gold-600: #b8941f; /* deep gold */
+  --dax-gold-500: #d4af37; /* PRIMARY gold accent */
+  --dax-gold-400: #e3c75c; /* hover gold */
+  --dax-gold-300: #f0dd92; /* gold highlight / sheen */
+
+  /* ---- Neutrals (warm cream → black) ---- */
+  --dax-cream: #f5f1e8;   /* primary text / card face */
+  --dax-cream-dim: #d8d2c4;
+  --dax-stone-400: #a8a294;
+  --dax-stone-500: #6f6b60;
+  --dax-stone-700: #3a3a34;
+  --dax-ink-900: #0b0b0a;
+  --dax-black: #000000;   /* cards, deep UI elements */
+  --dax-white: #ffffff;
+
+  /* ---- Card suit colors (UNO-style, colorblind-safe pairings) ---- */
+  /* Locked to the DAX game spec card palette. */
+  --dax-suit-red: #f44336;
+  --dax-suit-red-deep: #c5362b;
+  --dax-suit-blue: #2196f3;
+  --dax-suit-blue-deep: #1976d2;
+  --dax-suit-green: #4caf50;
+  --dax-suit-green-deep: #388e3c;
+  --dax-suit-yellow: #ffd54f;
+  --dax-suit-yellow-deep: #e0b53d;
+  --dax-suit-wild: #1a1a1a; /* wild / black cards */
+
+  /* ---- Semantic / status (locked to game spec) ---- */
+  --dax-success: #4caf50;
+  --dax-warning: #ffc107;
+  --dax-danger: #f44336;
+  --dax-info: #2196f3;
+
+  /* ---- Turn-timer gradient stops (green → yellow → red) ---- */
+  --dax-timer-safe: #4caf50;
+  --dax-timer-mid: #ffc107;
+  --dax-timer-urgent: #f44336;
+
+  /* ============================================================
+     Semantic aliases — reference these in components
+     ============================================================ */
+  --surface-app: var(--dax-emerald-800);
+  --surface-board: var(--dax-emerald-600);
+  --surface-raised: var(--dax-emerald-700);
+  --surface-sunken: var(--dax-emerald-900);
+  --surface-card: var(--dax-cream);
+  --surface-card-back: var(--dax-emerald-700);
+  --surface-overlay: rgba(10, 31, 18, 0.72);
+
+  --text-primary: var(--dax-cream);
+  --text-secondary: var(--dax-stone-400);
+  --text-on-gold: var(--dax-emerald-900);
+  --text-on-card: var(--dax-ink-900);
+  --text-accent: var(--dax-gold-500);
+
+  --border-subtle: rgba(245, 241, 232, 0.10);
+  --border-default: rgba(245, 241, 232, 0.18);
+  --border-strong: rgba(245, 241, 232, 0.32);
+  --border-gold: var(--dax-gold-500);
+
+  --accent: var(--dax-gold-500);
+  --accent-hover: var(--dax-gold-400);
+  --accent-press: var(--dax-gold-700);
+
+  --focus-ring: var(--dax-gold-400);
+}

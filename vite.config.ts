@@ -1,8 +1,12 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import { visualizer } from "rollup-plugin-visualizer";
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    visualizer({ filename: "stats.html", gzipSize: true, open: false }),
+  ],
   build: {
     rollupOptions: {
       output: {
@@ -11,6 +15,7 @@ export default defineConfig({
             return "vendor";
           }
           if (id.includes("node_modules/firebase")) return "firebase";
+          if (id.includes("node_modules/@sentry")) return "sentry";
           if (id.includes("node_modules/zustand")) return "state";
         },
       },

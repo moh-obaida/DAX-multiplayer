@@ -1,0 +1,42 @@
+/* ============================================================
+   DAX — Base element defaults
+   Light reset + brand defaults. Scoped to be safe in cards.
+   ============================================================ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  color: var(--text-primary);
+  background: var(--surface-app);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "cv05" 1, "ss01" 1;
+}
+
+/* tabular numerals helper for scores, timers, counts */
+.dax-tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* uppercase micro-label */
+.dax-eyebrow {
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wider);
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-xs);
+  color: var(--text-accent);
+}
+
+::selection {
+  background: rgba(212, 175, 55, 0.3);
+  color: var(--dax-cream);
+}

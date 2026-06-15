@@ -8,6 +8,7 @@ import Button from "../components/UI/Button";
 import { useAuthStore } from "../store/authStore";
 import { useToastStore } from "../store/toastStore";
 import { createRoom, joinRoom } from "../lib/firebase";
+import { copy } from "../lib/copy";
 
 export default function LobbyPage() {
   const navigate = useNavigate();
@@ -23,10 +24,13 @@ export default function LobbyPage() {
     setLoading(true);
     try {
       const room = await createRoom(playerId, playerName);
-      addToast(`Room ${room.code} created`, "success");
+      addToast(copy.toast.roomCreated(room.code), "success");
       navigate(`/room/${room.code}`);
-    } catch {
-      addToast("Failed to create room", "error");
+    } catch (e) {
+      const msg = e instanceof Error && e.message === "RATE_LIMIT"
+        ? "Wait 30 seconds before creating another room"
+        : copy.toast.createFailed;
+      addToast(msg, "error");
     } finally {
       setLoading(false);
     }
@@ -34,26 +38,26 @@ export default function LobbyPage() {
 
   const handleJoin = async () => {
     if (joinCode.length !== 6) {
-      addToast("Enter a valid 6-digit room code", "error");
+      addToast(copy.toast.invalidCode, "error");
       return;
     }
     setLoading(true);
     try {
       const room = await joinRoom(joinCode, playerId, playerName);
       if (!room) {
-        addToast("Room not found — check the code", "error");
+        addToast(copy.toast.roomNotFound, "error");
         return;
       }
       navigate(`/room/${joinCode}`);
     } catch {
-      addToast("Failed to join room", "error");
+      addToast(copy.toast.joinFailed, "error");
     } finally {
       setLoading(false);
     }
   };
 
   const handleQuickMatch = () => {
-    addToast("Starting local demo match…", "info");
+    addToast(copy.toast.demoStart, "info");
     navigate("/game/demo");
   };
 

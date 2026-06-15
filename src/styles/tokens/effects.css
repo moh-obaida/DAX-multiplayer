@@ -1,0 +1,49 @@
+/* ============================================================
+   DAX — Effects: shadows, glows, gradients, motion
+   ============================================================ */
+
+:root {
+  /* ---- Elevation shadows (dark UI: deep + soft) ---- */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 20px 50px rgba(0, 0, 0, 0.6);
+
+  /* ---- Playing-card shadow (lifts off the felt) ---- */
+  --shadow-card: 0 6px 16px rgba(0, 0, 0, 0.45), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-card-raised: 0 18px 40px rgba(0, 0, 0, 0.55);
+
+  /* ---- Gold glow (selection, focus, premium accents) ---- */
+  --glow-gold: 0 0 0 2px var(--dax-gold-500), 0 0 18px rgba(212, 175, 55, 0.55);
+  --glow-gold-soft: 0 0 24px rgba(212, 175, 55, 0.35);
+  --glow-turn: 0 0 0 3px rgba(212, 175, 55, 0.9), 0 0 28px rgba(212, 175, 55, 0.5);
+
+  /* ---- Inner sheen for cards / chips ---- */
+  --inset-sheen: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  --inset-edge: inset 0 0 0 1px rgba(0, 0, 0, 0.18);
+
+  /* ---- Signature gradients ---- */
+  --grad-felt:
+    radial-gradient(120% 90% at 50% 38%, #235041 0%, #1a3a2e 45%, #0f2818 100%); /* @kind color */
+  --grad-gold:
+    linear-gradient(135deg, #f0dd92 0%, #d4af37 45%, #b8941f 100%); /* @kind color */
+  --grad-gold-sheen:
+    linear-gradient(135deg, #ffffff 0%, #f0dd92 22%, #d4af37 55%, #9c7c1f 100%); /* @kind color */
+  --grad-app:
+    radial-gradient(140% 120% at 50% 0%, #143324 0%, #0f2818 55%, #0a1f12 100%); /* @kind color */
+  --grad-timer:
+    linear-gradient(90deg, var(--dax-timer-safe) 0%,
+      var(--dax-timer-mid) 60%, var(--dax-timer-urgent) 100%); /* @kind color */
+
+  /* ---- Motion ---- */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1); /* @kind other */
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1); /* @kind other */
+  --ease-snap: cubic-bezier(0.34, 1.56, 0.64, 1); /* @kind other */
+  --dur-fast: 120ms; /* @kind other */
+  --dur-base: 200ms; /* @kind other */
+  --dur-slow: 360ms; /* @kind other */
+  --dur-deal: 500ms; /* @kind other */
+
+  /* ---- Backdrop blur ---- */
+  --blur-overlay: blur(10px); /* @kind other */
+}

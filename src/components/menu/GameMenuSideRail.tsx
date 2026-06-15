@@ -3,8 +3,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useFriendsStore } from "../../store/friendsStore";
 import { useSettingsStore } from "../../store/settingsStore";
-import { useRoomStore } from "../../store/roomStore";
 import { useToastStore } from "../../store/toastStore";
+import { copy } from "../../lib/copy";
 
 export default function GameMenuSideRail() {
   const friends = useFriendsStore((s) => s.friends);
@@ -13,7 +13,6 @@ export default function GameMenuSideRail() {
   const setSoundVolume = useSettingsStore((s) => s.setSoundVolume);
   const [showJoin, setShowJoin] = useState(false);
   const [code, setCode] = useState("");
-  const setJoinCode = useRoomStore((s) => s.setJoinCode);
   const addToast = useToastStore((s) => s.add);
   const navigate = useNavigate();
 
@@ -21,11 +20,10 @@ export default function GameMenuSideRail() {
 
   const submitJoin = () => {
     if (code.length !== 6) {
-      addToast("Enter a 6-digit room code", "error");
+      addToast(copy.toast.invalidCode, "error");
       return;
     }
-    setJoinCode(code);
-    navigate("/play");
+    navigate(`/play?join=${code}`);
   };
 
   return (

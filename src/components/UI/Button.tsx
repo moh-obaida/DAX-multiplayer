@@ -10,9 +10,9 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 const variants = {
   primary: "dax-btn-primary",
   secondary: "dax-btn-secondary",
-  ghost: "text-ivory-muted hover:text-gold hover:bg-gold/5 px-4 py-2 rounded-lg transition-all font-medium",
-  danger: "bg-red/90 text-white font-semibold px-5 py-2.5 rounded-lg hover:bg-red transition-all",
-  neon: "font-display uppercase tracking-wider text-sm border border-gold text-gold px-5 py-2.5 rounded-lg shadow-neon hover:shadow-gold transition-all",
+  ghost: "text-ivory-muted hover:text-gold hover:bg-gold/5 px-4 py-2 rounded-lg transition-all font-medium active:scale-[0.98]",
+  danger: "bg-red/90 text-white font-semibold px-5 py-2.5 rounded-lg hover:bg-red transition-all active:scale-[0.98]",
+  neon: "font-display uppercase tracking-wider text-sm border border-gold text-gold px-5 py-2.5 rounded-lg shadow-neon hover:shadow-gold transition-all active:scale-[0.98]",
 };
 
 const sizes = {
