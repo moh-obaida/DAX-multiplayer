@@ -10,8 +10,8 @@ export default function AboutPage() {
         <CardPanel>
           <p className="mb-4">
             <strong className="text-ivory">DAX</strong> is a fast-paced multiplayer card game inspired by UNO.
-            Play with 2–4 friends in real time — match colors and numbers, call UNO at the right moment,
-            and empty your hand first to win.
+            Play with 2–8 friends in real time — match colors and numbers, call UNO at the right moment,
+            and finish in the winning place for your table size.
           </p>
           <p className="mb-4">
             We built DAX to be halal, ad-free, and free of gambling. No real-money wagering, no loot boxes —
@@ -20,7 +20,7 @@ export default function AboutPage() {
           <p>{copy.app.description}</p>
         </CardPanel>
         <div className="flex gap-3">
-          <Button variant="primary" to="/play">{copy.cta.playNow}</Button>
+          <Button variant="primary" to="/">{copy.cta.playNow}</Button>
           <Button variant="secondary" to="/help">Rules &amp; FAQ</Button>
         </div>
       </div>

@@ -13,9 +13,10 @@ import {
 } from "firebase/database";
 import type { GameState, Player, CardColor } from "../types/game";
 import type { FirebaseRoom, FirebaseRoomSettings, FirebasePlayer, ChatMessage } from "../types/firebase";
-import { DEFAULT_ROOM_SETTINGS, generateRoomCode } from "./constants";
+import { DEFAULT_ROOM_SETTINGS, generateRoomCode, ROOM_INACTIVITY_MS } from "./constants";
 import { gameStateToFirebase, firebaseToGameState, initializeGame, syncPlayersHands } from "./gameLogic";
 import { analyticsEvents } from "./analytics";
+import { CREATE_ROOM_COOLDOWN_MS, UI } from "./timing";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "",
@@ -31,23 +32,35 @@ export const isFirebaseConfigured = Boolean(
   firebaseConfig.apiKey && firebaseConfig.databaseURL && firebaseConfig.projectId
 );
 
-const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const database = getDatabase(app);
+const app = isFirebaseConfigured ? initializeApp(firebaseConfig) : null;
+export { app as firebaseApp };
+export const auth = app ? getAuth(app) : null;
+export const database = app ? getDatabase(app) : null;
 
 let authReady: Promise<User | null> | null = null;
+
+function requireDatabase(): NonNullable<typeof database> {
+  if (!database) throw new Error("Firebase is not configured");
+  return database;
+}
+
+function requireAuth(): NonNullable<typeof auth> {
+  if (!auth) throw new Error("Firebase is not configured");
+  return auth;
+}
 
 export function ensureAuth(): Promise<User | null> {
   if (!isFirebaseConfigured) return Promise.resolve(null);
   if (!authReady) {
     authReady = new Promise((resolve) => {
-      const unsub = onAuthStateChanged(auth, async (user) => {
+      const fbAuth = requireAuth();
+      const unsub = onAuthStateChanged(fbAuth, async (user) => {
         if (user) {
           unsub();
           resolve(user);
         } else {
           try {
-            const cred = await signInAnonymously(auth);
+            const cred = await signInAnonymously(fbAuth);
             unsub();
             resolve(cred.user);
           } catch {
@@ -62,28 +75,61 @@ export function ensureAuth(): Promise<User | null> {
 }
 
 function roomRef(code: string): DatabaseReference {
-  return ref(database, `rooms/${code}`);
+  return ref(requireDatabase(), `rooms/${code}`);
 }
 
 const PLAYER_COLORS: CardColor[] = ["red", "blue", "green", "yellow"];
+const ROOM_CODE_RETRIES = 5;
+
+async function generateUniqueRoomCode(): Promise<string> {
+  for (let attempt = 0; attempt < ROOM_CODE_RETRIES; attempt++) {
+    const code = generateRoomCode();
+    if (isFirebaseConfigured) {
+      const snap = await get(roomRef(code));
+      if (!snap.exists()) return code;
+    } else if (!localRooms[code]) {
+      return code;
+    }
+  }
+  throw new Error("CODE_COLLISION");
+}
 
 let lastCreateRoomAt = 0;
-const CREATE_ROOM_COOLDOWN_MS = 30_000;
+
+function rateLimitRef(uid: string): DatabaseReference {
+  return ref(requireDatabase(), `rateLimits/${uid}/lastRoomCreate`);
+}
+
+async function assertCreateRoomAllowed(hostId: string): Promise<void> {
+  const now = Date.now();
+  if (now - lastCreateRoomAt < CREATE_ROOM_COOLDOWN_MS) {
+    throw new Error("RATE_LIMIT");
+  }
+
+  if (isFirebaseConfigured) {
+    await ensureAuth();
+    const snap = await get(rateLimitRef(hostId));
+    const lastServer = snap.val() as number | null;
+    if (lastServer && now - lastServer < CREATE_ROOM_COOLDOWN_MS) {
+      throw new Error("RATE_LIMIT");
+    }
+    await set(rateLimitRef(hostId), now);
+  }
+
+  lastCreateRoomAt = now;
+}
 
 export async function createRoom(
   hostId: string,
   hostName: string,
   settings?: Partial<FirebaseRoomSettings>
 ): Promise<FirebaseRoom> {
-  const now = Date.now();
-  if (now - lastCreateRoomAt < CREATE_ROOM_COOLDOWN_MS) {
-    throw new Error("RATE_LIMIT");
-  }
-  lastCreateRoomAt = now;
-  const code = generateRoomCode();
+  await assertCreateRoomAllowed(hostId);
+  const code = await generateUniqueRoomCode();
   const room: FirebaseRoom = {
     code,
     hostId,
+    members: { [hostId]: true },
     status: "waiting",
     createdAt: Date.now(),
     lastActivity: Date.now(),
@@ -142,9 +188,12 @@ export async function joinRoom(
     ...room,
     lastActivity: Date.now(),
     players: [...room.players, newPlayer],
+    members: { ...room.members, [playerId]: true },
   };
 
   if (isFirebaseConfigured) {
+    await ensureAuth();
+    await set(ref(requireDatabase(), `rooms/${code}/members/${playerId}`), true);
     await update(roomRef(code), { players: updated.players, lastActivity: updated.lastActivity });
   } else {
     localRooms[code] = updated;
@@ -240,7 +289,7 @@ export function subscribeRoom(
   if (!isFirebaseConfigured) {
     const poll = () => callback(localRooms[code] ?? null);
     poll();
-    const id = setInterval(poll, 500);
+    const id = setInterval(poll, UI.LOCAL_ROOM_POLL_MS);
     return () => clearInterval(id);
   }
 
@@ -280,6 +329,7 @@ export async function leaveRoom(code: string, playerId: string): Promise<void> {
       role: hostLeft && i === 0 ? "host" : p.role === "host" && !hostLeft ? "host" : "player",
     })),
     hostId: hostLeft ? remaining[0].id : room.hostId,
+    members: Object.fromEntries(remaining.map((p) => [p.id, true])),
     status: hostLeft && room.status === "playing" ? "ended" : room.status,
   };
 
@@ -321,12 +371,16 @@ function persistLocalRooms() {
 function loadLocalRooms() {
   try {
     const raw = localStorage.getItem(LOCAL_KEY);
-    localRooms = raw ? JSON.parse(raw) : {};
+    const parsed = raw ? (JSON.parse(raw) as Record<string, FirebaseRoom>) : {};
+    const cutoff = Date.now() - ROOM_INACTIVITY_MS;
+    localRooms = Object.fromEntries(
+      Object.entries(parsed).filter(([, room]) => room.lastActivity >= cutoff)
+    );
+    if (Object.keys(localRooms).length !== Object.keys(parsed).length) {
+      persistLocalRooms();
+    }
   } catch {
     localRooms = {};
   }
 }
 loadLocalRooms();
-
-// Re-export legacy firebase path
-export { app };

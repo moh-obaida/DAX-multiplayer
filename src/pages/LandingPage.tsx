@@ -4,7 +4,7 @@ import Footer from "../components/layout/Footer";
 import { copy } from "../lib/copy";
 
 const FEATURES = [
-  { title: "2–4 players", desc: "Private rooms with a 6-digit code. Play with friends in real time." },
+  { title: "2–8 players", desc: "Private rooms with a 6-digit code. Play with friends in real time." },
   { title: "30-second turns", desc: "Fast-paced matches with a visible timer and AFK handling." },
   { title: "UNO-style rules", desc: "Match color or number, wild cards, +2, +4, and manual UNO calls." },
   { title: "Emotes only", desc: "Preset emotes and phrases — no open chat, safe for everyone." },
@@ -29,7 +29,7 @@ export default function LandingPage() {
           </Link>
           <nav className="flex items-center gap-3">
             <Link to="/help" className="text-sm text-ivory-muted hover:text-gold transition-colors hidden sm:inline">How to play</Link>
-            <Button variant="primary" size="sm" to="/play">{copy.cta.playNow}</Button>
+            <Button variant="primary" size="sm" to="/">{copy.cta.playNow}</Button>
           </nav>
         </div>
       </header>
@@ -53,7 +53,7 @@ export default function LandingPage() {
               {copy.app.description} Halal, ad-free, no gambling.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button variant="primary" size="lg" to="/play">{copy.cta.playNow}</Button>
+              <Button variant="primary" size="lg" to="/">{copy.cta.playNow}</Button>
               <Button variant="secondary" size="lg" to="/help">How to play</Button>
             </div>
           </div>
@@ -95,7 +95,7 @@ export default function LandingPage() {
 
         <section className="py-12 px-4 border-t border-gold/10 text-center">
           <p className="text-ivory-dim text-sm mb-4">Ready to play?</p>
-          <Button variant="primary" to="/play">{copy.cta.playNow}</Button>
+          <Button variant="primary" to="/">{copy.cta.playNow}</Button>
         </section>
       </main>
 
@@ -112,7 +112,7 @@ export default function LandingPage() {
             url: appUrl || undefined,
             genre: "Card Game",
             gamePlatform: "Web browser",
-            numberOfPlayers: { "@type": "QuantitativeValue", minValue: 2, maxValue: 4 },
+            numberOfPlayers: { "@type": "QuantitativeValue", minValue: 2, maxValue: 8 },
           }),
         }}
       />

@@ -18,9 +18,24 @@ export function isExternalHelpUrl(): boolean {
   return Boolean(import.meta.env.VITE_HELP_URL);
 }
 
+function normalizeHost(host: string): string {
+  return host.toLowerCase().replace(/\.$/, "");
+}
+
+/** Help subdomain only when explicitly enabled via env (never blind host.startsWith). */
 export function isHelpSubdomain(): boolean {
-  const host = window.location.hostname;
-  return host === "help.localhost" || host.startsWith("help.");
+  const enabled = import.meta.env.VITE_ENABLE_HELP_SUBDOMAIN === "true";
+  if (!enabled) return false;
+
+  const configured = import.meta.env.VITE_HELP_HOST?.trim();
+  const host = normalizeHost(window.location.hostname);
+
+  if (configured) {
+    return host === normalizeHost(configured);
+  }
+
+  // Dev-only fallback when env flag is on but host not set
+  return import.meta.env.DEV && host === "help.localhost";
 }
 
 export function getAppDomain(): string {

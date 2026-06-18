@@ -1,14 +1,15 @@
 import { logEvent as firebaseLogEvent } from "firebase/analytics";
 import { getAnalytics, isSupported } from "firebase/analytics";
-import { app, isFirebaseConfigured } from "./firebase";
+import { firebaseApp, isFirebaseConfigured } from "./firebase";
 
 let analytics: ReturnType<typeof getAnalytics> | null = null;
 
 async function getAnalyticsInstance() {
-  if (!isFirebaseConfigured || analytics) return analytics;
+  if (!isFirebaseConfigured || !firebaseApp) return null;
+  if (analytics) return analytics;
   const supported = await isSupported();
   if (!supported) return null;
-  analytics = getAnalytics(app);
+  analytics = getAnalytics(firebaseApp);
   return analytics;
 }
 

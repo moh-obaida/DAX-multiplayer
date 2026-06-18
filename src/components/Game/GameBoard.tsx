@@ -1,7 +1,6 @@
 import { lazy, Suspense, useState, useEffect } from "react";
 import { Settings, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
-import type { PlayerSeatPosition } from "../../types/ui";
 import { useGame } from "../../hooks/useGame";
 import { useTimer } from "../../hooks/useTimer";
 import { useToastStore } from "../../store/toastStore";
@@ -16,6 +15,8 @@ import GameSettingsModal from "../Modals/GameSettingsModal";
 import EmoteMenu from "../Common/EmoteMenu";
 import { useGameStore } from "../../store/gameStore";
 import { runBotTurn } from "../../utils/botAI";
+import { UI } from "../../lib/timing";
+import { getOpponentSeatStyles } from "../../utils/seatLayout";
 
 const WildColorPicker = lazy(() => import("../Modals/WildColorPicker"));
 const GameEnd = lazy(() => import("../Modals/GameEnd"));
@@ -24,11 +25,10 @@ interface GameBoardProps {
   localPlayerId: string;
   roomCode?: string;
   onRematch?: () => void;
+  connected?: boolean;
 }
 
-const SEAT_POSITIONS: PlayerSeatPosition[] = ["top", "left", "right", "top-left"];
-
-export default function GameBoard({ localPlayerId, roomCode, onRematch }: GameBoardProps) {
+export default function GameBoard({ localPlayerId, roomCode, onRematch, connected = true }: GameBoardProps) {
   const {
     game,
     localPlayer,
@@ -55,7 +55,7 @@ export default function GameBoard({ localPlayerId, roomCode, onRematch }: GameBo
     const timeout = setTimeout(() => {
       const next = runBotTurn(game);
       updateGameState(next);
-    }, 800);
+    }, UI.GAME_BOARD_MOUNT_DELAY_MS);
     return () => clearTimeout(timeout);
   }, [game, isFinished, updateGameState]);
 
@@ -73,6 +73,7 @@ export default function GameBoard({ localPlayerId, roomCode, onRematch }: GameBo
   if (!game) return null;
 
   const opponents = game.players.filter((p) => p.id !== localPlayerId);
+  const seatStyles = getOpponentSeatStyles(opponents.length);
   const canCallUno = (localPlayer?.hand.length ?? 0) === 1;
   const showWildPicker =
     game.pendingWildPick?.playerId === localPlayerId && isMyTurn;
@@ -97,7 +98,7 @@ export default function GameBoard({ localPlayerId, roomCode, onRematch }: GameBo
   return (
     <div className="h-screen flex flex-col bg-emerald overflow-hidden">
       <header className="flex items-center justify-between px-4 py-2 bg-emerald-dark border-b border-gold/15">
-        <Link to={roomCode ? `/room/${roomCode}` : "/play"} className="flex items-center gap-2 text-ivory-dim hover:text-gold text-sm">
+        <Link to={roomCode ? `/room/${roomCode}` : "/"} className="flex items-center gap-2 text-ivory-dim hover:text-gold text-sm">
           <ArrowLeft size={16} />
           Lobby
         </Link>
@@ -109,12 +110,18 @@ export default function GameBoard({ localPlayerId, roomCode, onRematch }: GameBo
 
       <TurnTimer timer={timer} />
 
-      <div className={`flex-1 relative dax-felt min-h-0 ${isMyTurn && !isFinished ? "ring-2 ring-inset ring-gold/20" : ""}`}>
+      {!connected && roomCode && (
+        <div className="bg-red/20 border-b border-red/40 px-4 py-1.5 text-center text-xs text-red-200">
+          {copy.toast.connectionLost}
+        </div>
+      )}
+
+      <div className={`flex-1 relative dax-felt min-h-0 overflow-hidden ${isMyTurn && !isFinished ? "ring-2 ring-inset ring-gold/20" : ""}`}>
         {opponents.map((p, i) => (
           <PlayerArea
             key={p.id}
             player={p}
-            position={SEAT_POSITIONS[i] ?? "top"}
+            seatStyle={seatStyles[i]}
             isLocal={false}
             canCallOut={!isMyTurn && p.hand.length === 1 && !p.hasCalledUno}
             onCallOut={() => {

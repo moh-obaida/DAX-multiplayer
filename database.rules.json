@@ -1,16 +1,47 @@
 {
   "rules": {
+    "rateLimits": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid",
+        "lastRoomCreate": {
+          ".validate": "newData.isNumber()"
+        }
+      }
+    },
     "rooms": {
       ".indexOn": ["status", "createdAt", "lastActivity"],
       "$roomCode": {
-        ".read": "auth != null",
-        ".write": "auth != null",
-        ".validate": "newData.hasChildren(['code','hostId','players','settings','status'])",
+        ".read": "auth != null && (!data.exists() || data.child('members').child(auth.uid).exists() || data.child('status').val() === 'waiting')",
+        ".write": "auth != null && !data.exists() && newData.child('hostId').val() === auth.uid && newData.child('members').child(auth.uid).val() === true",
+        ".validate": "newData.hasChildren(['code','hostId','players','settings','status','members'])",
         "status": {
+          ".write": "auth != null && root.child('rooms').child($roomCode).child('hostId').val() === auth.uid",
           ".validate": "newData.isString() && (newData.val() == 'waiting' || newData.val() == 'playing' || newData.val() == 'ended')"
         },
+        "settings": {
+          ".write": "auth != null && root.child('rooms').child($roomCode).child('hostId').val() === auth.uid"
+        },
+        "gameState": {
+          ".write": "auth != null && root.child('rooms').child($roomCode).child('hostId').val() === auth.uid"
+        },
         "players": {
-          ".validate": "newData.hasChildren() && newData.numChildren() <= 4"
+          ".write": "auth != null && (root.child('rooms').child($roomCode).child('hostId').val() === auth.uid || (root.child('rooms').child($roomCode).child('status').val() === 'waiting' && root.child('rooms').child($roomCode).child('members').child(auth.uid).exists()))",
+          ".validate": "newData.hasChildren() && newData.numChildren() <= 8"
+        },
+        "members": {
+          "$uid": {
+            ".write": "auth != null && $uid === auth.uid && root.child('rooms').child($roomCode).child('status').val() === 'waiting' && !root.child('rooms').child($roomCode).child('members').child(auth.uid).exists()"
+          }
+        },
+        "messages": {
+          ".write": "auth != null && root.child('rooms').child($roomCode).child('members').child(auth.uid).exists()"
+        },
+        "lastActivity": {
+          ".write": "auth != null && root.child('rooms').child($roomCode).child('members').child(auth.uid).exists()"
+        },
+        "hostId": {
+          ".write": "auth != null && root.child('rooms').child($roomCode).child('hostId').val() === auth.uid"
         }
       }
     },

@@ -1,12 +1,13 @@
 import type { CardColor } from "../types/game";
 import type { EmoteOption, PhraseOption } from "../types/ui";
+import { DAX_RULES } from "../config/daxRules";
 
-export const TURN_TIMER_SECONDS = 30;
+export const TURN_TIMER_SECONDS = DAX_RULES.defaults.turnTimerSeconds;
 export const WILD_PICK_SECONDS = 15;
 export const AFK_KICK_STRIKES = 3;
 export const ROOM_INACTIVITY_MS = 15 * 60 * 1000;
-export const MIN_PLAYERS = 2;
-export const MAX_PLAYERS = 4;
+export const MIN_PLAYERS = DAX_RULES.defaults.minPlayers;
+export const MAX_PLAYERS = DAX_RULES.defaults.maxPlayers;
 
 export const CARD_WIDTH = 96;
 export const CARD_HEIGHT = 144;

@@ -9,6 +9,7 @@ import {
   autoPickWildColor,
   handleAfkTimeout,
 } from "../lib/gameLogic";
+import { UI } from "../lib/timing";
 
 interface GameStore {
   game: GameState | null;
@@ -64,7 +65,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       next = autoPickWildColor(next);
     }
     set({ game: next });
-    setTimeout(() => set({ isAnimating: false }), 300);
+    setTimeout(() => set({ isAnimating: false }), UI.CARD_PLAY_ANIMATION_MS);
     return next.discardPile.length !== before || next.gameStatus !== state.game.gameStatus;
   },
 
@@ -73,7 +74,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       if (!state.game) return state;
       return { game: drawCard(state.game, playerId), isAnimating: true };
     });
-    setTimeout(() => set({ isAnimating: false }), 200);
+    setTimeout(() => set({ isAnimating: false }), UI.CARD_DRAW_ANIMATION_MS);
   },
 
   callUno: (playerId) => {

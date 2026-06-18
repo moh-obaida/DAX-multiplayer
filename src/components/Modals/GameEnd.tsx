@@ -46,7 +46,7 @@ export default function GameEnd({ game, localPlayerId, onRematch }: GameEndProps
 
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           {onRematch && <Button variant="primary" onClick={onRematch}>Rematch</Button>}
-          <Button variant="secondary" to="/play">Lobby</Button>
+          <Button variant="secondary" to="/">Lobby</Button>
           <Button variant="ghost" to="/">Main Menu</Button>
         </div>
       </div>

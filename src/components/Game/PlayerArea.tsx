@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { Eye } from "lucide-react";
 import type { Player } from "../../types/game";
 import type { PlayerSeatPosition } from "../../types/ui";
@@ -6,7 +7,8 @@ import PlayingCard from "../Common/PlayingCard";
 
 interface PlayerAreaProps {
   player: Player;
-  position: PlayerSeatPosition;
+  position?: PlayerSeatPosition;
+  seatStyle?: CSSProperties;
   isLocal: boolean;
   onCallOut?: () => void;
   canCallOut?: boolean;
@@ -21,11 +23,21 @@ const positionClasses: Record<PlayerSeatPosition, string> = {
   "top-right": "top-16 right-16",
 };
 
-export default function PlayerArea({ player, position, isLocal, onCallOut, canCallOut }: PlayerAreaProps) {
-  const statusVariant = player.isCurrentTurn ? "turn" : player.status === "finished" ? "spectator" : "waiting";
+export default function PlayerArea({ player, position = "top", seatStyle, isLocal, onCallOut, canCallOut }: PlayerAreaProps) {
+  const statusVariant = player.isCurrentTurn ? "turn" : player.status === "finished" || player.status === "spectator" ? "spectator" : "waiting";
+  const statusLabel = player.isCurrentTurn
+    ? "Your turn"
+    : player.status === "finished"
+      ? "Finished"
+      : player.status === "spectator"
+        ? "Spectating"
+        : "Waiting";
 
   return (
-    <div className={`absolute ${positionClasses[position]} z-10 flex flex-col items-center gap-2`}>
+    <div
+      className={seatStyle ? "absolute z-10 flex flex-col items-center gap-2 max-w-[140px]" : `absolute ${positionClasses[position]} z-10 flex flex-col items-center gap-2 max-w-[140px]`}
+      style={seatStyle}
+    >
       <div className={`flex items-center gap-2 px-3 py-2 rounded-xl bg-board/90 border ${player.isCurrentTurn ? "border-gold shadow-gold-sm" : "border-gold/15"}`}>
         <span className="w-9 h-9 rounded-full bg-gold/15 border border-gold/30 flex items-center justify-center font-display font-bold text-gold text-sm">
           {player.name[0]?.toUpperCase()}
@@ -37,7 +49,7 @@ export default function PlayerArea({ player, position, isLocal, onCallOut, canCa
           </div>
           <div className="flex items-center gap-2 mt-0.5">
             <Badge
-              label={player.isCurrentTurn ? "Your turn" : player.status === "finished" ? "Finished" : "Waiting"}
+              label={statusLabel}
               variant={statusVariant}
               pulse={player.isCurrentTurn}
             />

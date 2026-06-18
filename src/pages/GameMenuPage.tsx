@@ -6,9 +6,10 @@ import Modal from "../components/UI/Modal";
 import Button from "../components/UI/Button";
 import { useToastStore } from "../store/toastStore";
 import { useAuthStore } from "../store/authStore";
+import { usePlayerId } from "../hooks/usePlayerId";
 import { createRoom, joinRoom } from "../lib/firebase";
 import { copy } from "../lib/copy";
-import type { HandSizeOption } from "../config/daxRules";
+import { DAX_RULES, type HandSizeOption } from "../config/daxRules";
 
 const HAND_SIZES: HandSizeOption[] = [7, 10, 14, 21];
 
@@ -25,12 +26,12 @@ export default function GameMenuPage() {
   const [loading, setLoading] = useState(false);
 
   const [customHand, setCustomHand] = useState<HandSizeOption>(7);
-  const [customMax, setCustomMax] = useState(4);
+  const [customMax, setCustomMax] = useState<number>(DAX_RULES.defaults.maxPlayers);
   const [customDax, setCustomDax] = useState(true);
   const [customPlus2, setCustomPlus2] = useState(false);
   const [customPlus4, setCustomPlus4] = useState(false);
 
-  const playerId = user?.id || `guest-${Date.now()}`;
+  const playerId = usePlayerId();
   const playerName = user?.username || "Guest";
 
   useEffect(() => {
@@ -47,6 +48,7 @@ export default function GameMenuPage() {
   };
 
   const handleCreateRoom = async () => {
+    if (!playerId) return;
     setLoading(true);
     try {
       const room = await createRoom(playerId, playerName, {
@@ -71,6 +73,7 @@ export default function GameMenuPage() {
   };
 
   const handleJoin = async () => {
+    if (!playerId) return;
     if (code.length !== 6) {
       addToast(copy.toast.invalidCode, "error");
       return;
@@ -176,7 +179,7 @@ export default function GameMenuPage() {
         <div className="space-y-4 text-sm">
           <div>
             <label className="text-gold text-xs uppercase tracking-wider block mb-2">Max players ({customMax})</label>
-            <input type="range" min={2} max={4} value={customMax} onChange={(e) => setCustomMax(+e.target.value)} className="w-full accent-gold" />
+            <input type="range" min={2} max={8} value={customMax} onChange={(e) => setCustomMax(+e.target.value)} className="w-full accent-gold" />
           </div>
           <div>
             <label className="text-gold text-xs uppercase tracking-wider block mb-2">Starting hand</label>

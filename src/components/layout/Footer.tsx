@@ -18,8 +18,8 @@ export default function Footer() {
           <div>
             <h4 className="font-display text-xs uppercase tracking-widest text-gold mb-4">Play</h4>
             <ul className="space-y-2 text-sm text-ivory-muted">
-              <li><Link to="/play" className="hover:text-gold transition-colors">Quick Match</Link></li>
-              <li><Link to="/play" className="hover:text-gold transition-colors">Private Room</Link></li>
+              <li><Link to="/" className="hover:text-gold transition-colors">Quick Match</Link></li>
+              <li><Link to="/" className="hover:text-gold transition-colors">Private Room</Link></li>
               <li><Link to="/friends" className="hover:text-gold transition-colors">Friends</Link></li>
             </ul>
           </div>

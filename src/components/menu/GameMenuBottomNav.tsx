@@ -14,7 +14,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { id: "home", label: "Home", to: "/", icon: HomeIcon },
-  { id: "play", label: "Play", to: "/play", icon: PlayIcon },
+  { id: "play", label: "Play", to: "/", icon: PlayIcon },
   { id: "friends", label: "Friends", to: "/friends", icon: FriendsIcon },
   { id: "achievements", label: "Badges", to: "/profile", icon: TrophyIcon },
   {

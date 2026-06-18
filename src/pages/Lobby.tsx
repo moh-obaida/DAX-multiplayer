@@ -6,6 +6,7 @@ import CardPanel from "../components/UI/CardPanel";
 import Button from "../components/UI/Button";
 import { useAuthStore } from "../store/authStore";
 import { useToastStore } from "../store/toastStore";
+import { usePlayerId } from "../hooks/usePlayerId";
 import {
   getRoom,
   joinRoom,
@@ -29,11 +30,11 @@ export default function Lobby() {
   const [room, setRoom] = useState<FirebaseRoom | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const playerId = user?.id || `guest-${Date.now()}`;
+  const playerId = usePlayerId();
   const playerName = user?.username || "Guest";
 
   useEffect(() => {
-    if (!roomCode) return;
+    if (!roomCode || !playerId) return;
 
     const load = async () => {
       let r = await getRoom(roomCode);
@@ -49,7 +50,7 @@ export default function Lobby() {
     return unsub;
   }, [roomCode, playerId, playerName]);
 
-  if (loading) {
+  if (loading || !playerId) {
     return (
       <PageShell title="Loading…">
         <div className="flex justify-center py-12">

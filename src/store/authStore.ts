@@ -54,7 +54,9 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     if (!current) return;
     const updated = { ...current, ...partial };
     set({ user: updated });
-    saveUser(updated, true);
+    const settingsRaw = localStorage.getItem("dax-settings");
+    const rememberMe = settingsRaw ? JSON.parse(settingsRaw).rememberMe !== false : true;
+    saveUser(updated, rememberMe);
   },
 
   setLoading: (loading) => set({ isLoading: loading }),

@@ -2,7 +2,7 @@ export const copy = {
   app: {
     name: "DAX",
     tagline: "Fast-paced multiplayer card game",
-    description: "Play DAX online with 2–4 players. Real-time UNO-style card game with 30-second turns.",
+    description: "Play DAX online with 2–8 players. Real-time UNO-style card game with 30-second turns.",
   },
   cta: {
     playNow: "Play now",

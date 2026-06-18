@@ -27,7 +27,7 @@ export interface Player {
 
 export interface GameSettings {
   minPlayers: 2;
-  maxPlayers: 4;
+  maxPlayers: 8;
   handSize: 7 | 10 | 14 | 21;
   houseRules: {
     plus2Stack: boolean;

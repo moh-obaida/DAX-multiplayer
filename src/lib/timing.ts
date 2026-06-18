@@ -1,0 +1,13 @@
+/** Shared UI and sync timing constants (ms). */
+export const UI = {
+  CARD_PLAY_ANIMATION_MS: 300,
+  CARD_DRAW_ANIMATION_MS: 200,
+  HAND_REFLOW_MS: 200,
+  MODAL_FADE_MS: 200,
+  GAME_BOARD_MOUNT_DELAY_MS: 800,
+  MULTIPLAYER_SYNC_DEBOUNCE_MS: 100,
+  LOCAL_ROOM_POLL_MS: 500,
+  TIMER_TICK_MS: 1000,
+} as const;
+
+export const CREATE_ROOM_COOLDOWN_MS = 30_000;

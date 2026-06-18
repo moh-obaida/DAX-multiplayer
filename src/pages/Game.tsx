@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useGameStore } from "../store/gameStore";
 import { useAuthStore } from "../store/authStore";
 import { useMultiplayer } from "../hooks/useMultiplayer";
+import { usePlayerId } from "../hooks/usePlayerId";
 import { getRoom } from "../lib/firebase";
 import type { Player } from "../types/game";
 
@@ -50,12 +51,13 @@ export default function Game() {
   const resetGame = useGameStore((s) => s.resetGame);
   const user = useAuthStore((s) => s.user);
 
-  const localId = user?.id || "guest";
+  const playerId = usePlayerId();
+  const localId = playerId ?? user?.id ?? "guest";
   const localName = user?.username || "You";
   const isDemo = gameId === "demo" || gameId === "quick-match";
   const isHost = game?.hostId === localId;
 
-  useMultiplayer(isDemo ? undefined : gameId, localId, isHost);
+  const { connected } = useMultiplayer(isDemo ? undefined : gameId, localId, isHost);
 
   useEffect(() => {
     resetGame();
@@ -124,6 +126,7 @@ export default function Game() {
         localPlayerId={localId}
         roomCode={isDemo ? undefined : gameId}
         onRematch={handleRematch}
+        connected={connected}
       />
     </Suspense>
   );

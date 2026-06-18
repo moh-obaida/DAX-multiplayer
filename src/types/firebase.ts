@@ -40,6 +40,8 @@ export interface FirebaseRoomSettings {
 export interface FirebaseRoom {
   code: string;
   hostId: string;
+  /** uid → true; used by RTDB security rules for room access */
+  members: Record<string, boolean>;
   players: FirebasePlayer[];
   gameState: FirebaseGameState | null;
   settings: FirebaseRoomSettings;

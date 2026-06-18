@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import CardPanel from "../components/UI/CardPanel";
+import Button from "../components/UI/Button";
 import PageShell from "../components/layout/PageShell";
 
 function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
@@ -201,13 +202,8 @@ export default function HelpPage() {
           Found a bug, abusive behavior, or a player breaking room rules? Report it so we can review quickly.
         </p>
         <CardPanel>
-          <p className="text-sm mb-3">Email support with your username, game or room ID, and a short description:</p>
-          <a href="mailto:support@exampleurl.com" className="text-gold font-medium hover:underline">
-            support@exampleurl.com
-          </a>
-          <p className="text-xs text-ivory-dim mt-4">
-            Replace with your live support address before launch. Include screenshots when possible.
-          </p>
+          <p className="text-sm mb-3">Use the in-app help center for rules and FAQ. For beta feedback, open an issue on GitHub or contact the team through your host channel.</p>
+          <Button variant="secondary" to="/help">Open Help Center</Button>
         </CardPanel>
       </Section>
 

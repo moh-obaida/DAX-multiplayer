@@ -7,6 +7,7 @@ import CardPanel from "../components/UI/CardPanel";
 import Button from "../components/UI/Button";
 import { useAuthStore } from "../store/authStore";
 import { useToastStore } from "../store/toastStore";
+import { usePlayerId } from "../hooks/usePlayerId";
 import { createRoom, joinRoom } from "../lib/firebase";
 import { copy } from "../lib/copy";
 
@@ -17,10 +18,11 @@ export default function LobbyPage() {
   const [joinCode, setJoinCode] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const playerId = user?.id || `guest-${Date.now()}`;
+  const playerId = usePlayerId();
   const playerName = user?.username || "Guest";
 
   const handleCreate = async () => {
+    if (!playerId) return;
     setLoading(true);
     try {
       const room = await createRoom(playerId, playerName);
@@ -37,6 +39,7 @@ export default function LobbyPage() {
   };
 
   const handleJoin = async () => {
+    if (!playerId) return;
     if (joinCode.length !== 6) {
       addToast(copy.toast.invalidCode, "error");
       return;
@@ -79,7 +82,7 @@ export default function LobbyPage() {
 
         <CardPanel title="Default Rules">
           <ul className="text-sm text-ivory-muted space-y-2">
-            <li>· 2–4 players per room</li>
+            <li>· 2–8 players per room</li>
             <li>· 7 cards · 30s turn timer</li>
             <li>· UNO call required at 1 card</li>
             <li>· Emotes + phrases chat only</li>

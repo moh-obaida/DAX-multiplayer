@@ -7,7 +7,9 @@ import type {
   ScoreEntry,
 } from "../types/game";
 import type { FirebaseRoom, FirebaseGameState } from "../types/firebase";
-import { DEFAULT_ROOM_SETTINGS, SCORING, TURN_TIMER_SECONDS, WILD_PICK_SECONDS } from "./constants";
+import { DEFAULT_ROOM_SETTINGS, SCORING, TURN_TIMER_SECONDS, WILD_PICK_SECONDS, MAX_PLAYERS, MIN_PLAYERS } from "./constants";
+import { validatePlayAction } from "./validation";
+import { getWinningFinishPlace } from "../config/daxRules";
 
 export function isValidPlay(card: Card, topCard: Card, activeColor: CardColor | null): boolean {
   if (card.type === "wild" || card.type === "wild_draw4") return true;
@@ -73,25 +75,30 @@ export function getNextPlayer(
   return idx;
 }
 
-function drawFromDeck(game: GameState, count: number): { drawn: Card[]; deck: Card[] } {
+function drawFromDeck(
+  game: GameState,
+  count: number
+): { drawn: Card[]; deck: Card[]; discardPile: Card[] } {
   let deck = [...game.deck];
+  let discardPile = [...game.discardPile];
   const drawn: Card[] = [];
   while (drawn.length < count) {
     if (deck.length === 0) {
-      if (game.discardPile.length <= 1) break;
-      deck = shuffle(game.discardPile.slice(0, -1));
+      if (discardPile.length <= 1) break;
+      deck = shuffle(discardPile.slice(0, -1));
+      discardPile = [discardPile[discardPile.length - 1]];
     }
     if (deck.length === 0) break;
     drawn.push(deck[0]);
     deck = deck.slice(1);
   }
-  return { drawn, deck };
+  return { drawn, deck, discardPile };
 }
 
 function defaultSettings(handSize: number): GameSettings {
   return {
-    minPlayers: 2,
-    maxPlayers: 4,
+    minPlayers: MIN_PLAYERS,
+    maxPlayers: MAX_PLAYERS,
     handSize: handSize as GameSettings["handSize"],
     houseRules: {
       plus2Stack: DEFAULT_ROOM_SETTINGS.plus2Stack,
@@ -158,16 +165,29 @@ export const initializeGame = (
   };
 };
 
+function setCurrentTurn(players: Player[], nextIndex: number): Player[] {
+  return players.map((p, i) => ({ ...p, isCurrentTurn: i === nextIndex }));
+}
+
+function clearUnoFlagsIfNeeded(handLength: number, player: Player): Pick<Player, "hasCalledDax" | "hasCalledUno"> {
+  if (handLength === 1) {
+    return { hasCalledDax: player.hasCalledDax, hasCalledUno: player.hasCalledUno };
+  }
+  return { hasCalledDax: false, hasCalledUno: false };
+}
+
 function applyFinish(game: GameState, playerId: string, playerIndex: number, newPlayers: Player[]): GameState {
   const finishOrder = [...game.finishOrder, playerId];
-  newPlayers[playerIndex] = { ...newPlayers[playerIndex], status: "finished", hand: [] };
+  const requiredPlace = getWinningFinishPlace(game.players.length);
 
-  const activeCount = newPlayers.filter((p) => p.status === "active").length;
-  if (activeCount <= 1 || finishOrder.length >= Math.min(game.players.length, 2)) {
-    const winnerId = finishOrder[0];
+  if (finishOrder.length >= requiredPlace) {
+    const winnerId = finishOrder[requiredPlace - 1];
+    const players = newPlayers.map((p, i) =>
+      i === playerIndex ? { ...p, status: "finished" as const, hand: [] } : p
+    );
     return {
       ...game,
-      players: newPlayers,
+      players,
       finishOrder,
       gameStatus: "finished",
       winners: [winnerId],
@@ -175,11 +195,13 @@ function applyFinish(game: GameState, playerId: string, playerIndex: number, new
     };
   }
 
-  const nextActive = getNextPlayer(playerIndex, game.players.length, game.playDirection, newPlayers);
-  newPlayers.forEach((p, i) => { p.isCurrentTurn = i === nextActive; });
+  const players = newPlayers.map((p, i) =>
+    i === playerIndex ? { ...p, status: "spectator" as const, hand: [] } : p
+  );
+  const nextActive = getNextPlayer(playerIndex, game.players.length, game.playDirection, players);
   return {
     ...game,
-    players: newPlayers,
+    players: setCurrentTurn(players, nextActive),
     finishOrder,
     currentPlayerIndex: nextActive,
     turnTimer: TURN_TIMER_SECONDS,
@@ -188,7 +210,7 @@ function applyFinish(game: GameState, playerId: string, playerIndex: number, new
 }
 
 function applyDrawPenalty(game: GameState, targetIndex: number, count: number): GameState {
-  const { drawn, deck } = drawFromDeck(game, count);
+  const { drawn, deck, discardPile } = drawFromDeck(game, count);
   const newPlayers = game.players.map((p) => ({ ...p }));
   newPlayers[targetIndex] = {
     ...newPlayers[targetIndex],
@@ -196,7 +218,61 @@ function applyDrawPenalty(game: GameState, targetIndex: number, count: number): 
     hasCalledDax: false,
     hasCalledUno: false,
   };
-  return { ...game, players: newPlayers, deck, pendingDraw: 0, drawStackType: null };
+  return { ...game, players: newPlayers, deck, discardPile, pendingDraw: 0, drawStackType: null };
+}
+
+interface CardEffectResult {
+  nextIndex: number;
+  direction: GameState["playDirection"];
+  pendingDraw: number;
+  drawStackType: GameState["drawStackType"];
+  state: GameState;
+}
+
+function applyCardEffects(
+  game: GameState,
+  card: Card,
+  playerIndex: number,
+  newPlayers: Player[],
+  baseState: GameState
+): CardEffectResult {
+  let nextIndex = getNextPlayer(playerIndex, game.players.length, game.playDirection, newPlayers);
+  let direction = game.playDirection;
+  let pendingDraw = game.pendingDraw;
+  let drawStackType = game.drawStackType;
+  let state = baseState;
+
+  if (card.type === "skip") {
+    nextIndex = getNextPlayer(nextIndex, game.players.length, direction, newPlayers);
+  } else if (card.type === "reverse") {
+    direction = direction === "clockwise" ? "counterClockwise" : "clockwise";
+  } else if (card.type === "draw2") {
+    if (game.settings.houseRules.plus2Stack && drawStackType === "draw2") {
+      pendingDraw += 2;
+    } else {
+      pendingDraw = 2;
+      drawStackType = "draw2";
+    }
+    nextIndex = getNextPlayer(nextIndex, game.players.length, direction, newPlayers);
+    state = applyDrawPenalty({ ...state, pendingDraw, drawStackType }, nextIndex, pendingDraw);
+    nextIndex = getNextPlayer(nextIndex, game.players.length, direction, state.players);
+    pendingDraw = 0;
+    drawStackType = null;
+  } else if (card.type === "wild_draw4") {
+    const drawCount =
+      game.settings.houseRules.plus4Stack && drawStackType === "wild_draw4" ? pendingDraw + 4 : 4;
+    nextIndex = getNextPlayer(nextIndex, game.players.length, direction, newPlayers);
+    state = applyDrawPenalty(
+      { ...state, pendingDraw: drawCount, drawStackType: "wild_draw4" },
+      nextIndex,
+      drawCount
+    );
+    nextIndex = getNextPlayer(nextIndex, game.players.length, direction, state.players);
+    pendingDraw = 0;
+    drawStackType = null;
+  }
+
+  return { nextIndex, direction, pendingDraw, drawStackType, state };
 }
 
 export const playCard = (
@@ -205,53 +281,41 @@ export const playCard = (
   cardId: string,
   chosenColor?: CardColor
 ): GameState => {
-  const playerIndex = game.players.findIndex((p) => p.id === playerId);
-  if (playerIndex === -1 || !game.players[playerIndex].isCurrentTurn) return game;
+  const validation = validatePlayAction(game, playerId, cardId, chosenColor);
+  if (!validation.ok) return game;
 
+  const playerIndex = game.players.findIndex((p) => p.id === playerId);
   const player = game.players[playerIndex];
   const cardIndex = player.hand.findIndex((c) => c.id === cardId);
-  if (cardIndex === -1) return game;
-
   const card = player.hand[cardIndex];
-  const topCard = game.discardPile[game.discardPile.length - 1];
 
-  if (card.type === "wild" || card.type === "wild_draw4") {
-    if (!chosenColor && !game.pendingWildPick) {
-      return {
-        ...game,
-        pendingWildPick: {
-          playerId,
-          cardId,
-          deadline: Date.now() + WILD_PICK_SECONDS * 1000,
-        },
-      };
-    }
-  } else if (!isValidPlay(card, topCard, game.activeColor)) {
-    return game;
+  if ((card.type === "wild" || card.type === "wild_draw4") && !chosenColor && !game.pendingWildPick) {
+    return {
+      ...game,
+      pendingWildPick: {
+        playerId,
+        cardId,
+        deadline: Date.now() + WILD_PICK_SECONDS * 1000,
+      },
+    };
   }
 
   const resolvedColor = chosenColor ?? (card.type === "wild" || card.type === "wild_draw4" ? undefined : card.color);
   if ((card.type === "wild" || card.type === "wild_draw4") && !resolvedColor) return game;
 
-  const newPlayers = game.players.map((p) => ({ ...p, isCurrentTurn: false }));
   const newHand = player.hand.filter((_, i) => i !== cardIndex);
-  newPlayers[playerIndex] = {
-    ...player,
-    hand: newHand,
-    isCurrentTurn: false,
-    hasCalledDax: newHand.length === 1 ? player.hasCalledDax : false,
-    hasCalledUno: newHand.length === 1 ? player.hasCalledUno : false,
-  };
+  const unoFlags = clearUnoFlagsIfNeeded(newHand.length, player);
+  const newPlayers = game.players.map((p, i) =>
+    i === playerIndex
+      ? { ...player, hand: newHand, isCurrentTurn: false, ...unoFlags }
+      : { ...p, isCurrentTurn: false }
+  );
 
-  const playedCard: Card = {
-    ...card,
-    color: resolvedColor ?? card.color,
-  };
-  const newDiscardPile = [...game.discardPile, playedCard];
+  const playedCard: Card = { ...card, color: resolvedColor ?? card.color };
   let nextState: GameState = {
     ...game,
     players: newPlayers,
-    discardPile: newDiscardPile,
+    discardPile: [...game.discardPile, playedCard],
     activeColor: resolvedColor ?? game.activeColor,
     pendingWildPick: null,
     turnTimer: TURN_TIMER_SECONDS,
@@ -261,53 +325,14 @@ export const playCard = (
     return applyFinish(nextState, playerId, playerIndex, newPlayers);
   }
 
-  let nextIndex = getNextPlayer(playerIndex, game.players.length, game.playDirection, newPlayers);
-  let direction = game.playDirection;
-  let pendingDraw = game.pendingDraw;
-  let drawStackType = game.drawStackType;
-
-  if (card.type === "skip") {
-    nextIndex = getNextPlayer(nextIndex, game.players.length, direction, newPlayers);
-  } else if (card.type === "reverse") {
-    if (game.players.length === 2) {
-      nextIndex = getNextPlayer(nextIndex, game.players.length, direction, newPlayers);
-    } else {
-      direction = direction === "clockwise" ? "counterClockwise" : "clockwise";
-    }
-  } else if (card.type === "draw2") {
-    if (game.settings.houseRules.plus2Stack && drawStackType === "draw2") {
-      pendingDraw += 2;
-    } else {
-      pendingDraw = 2;
-      drawStackType = "draw2";
-    }
-    nextIndex = getNextPlayer(nextIndex, game.players.length, direction, newPlayers);
-    nextState = applyDrawPenalty({ ...nextState, pendingDraw, drawStackType }, nextIndex, pendingDraw);
-    nextIndex = getNextPlayer(nextIndex, game.players.length, direction, nextState.players);
-    pendingDraw = 0;
-    drawStackType = null;
-  } else if (card.type === "wild_draw4") {
-    const drawCount = game.settings.houseRules.plus4Stack && drawStackType === "wild_draw4"
-      ? pendingDraw + 4
-      : 4;
-    nextIndex = getNextPlayer(nextIndex, game.players.length, direction, newPlayers);
-    nextState = applyDrawPenalty(
-      { ...nextState, pendingDraw: drawCount, drawStackType: "wild_draw4" },
-      nextIndex,
-      drawCount
-    );
-    nextIndex = getNextPlayer(nextIndex, game.players.length, direction, nextState.players);
-    pendingDraw = 0;
-    drawStackType = null;
-  }
-
-  nextState.players.forEach((p, i) => { p.isCurrentTurn = i === nextIndex; });
+  const effects = applyCardEffects(game, card, playerIndex, newPlayers, nextState);
   return {
-    ...nextState,
-    currentPlayerIndex: nextIndex,
-    playDirection: direction,
-    pendingDraw,
-    drawStackType,
+    ...effects.state,
+    players: setCurrentTurn(effects.state.players, effects.nextIndex),
+    currentPlayerIndex: effects.nextIndex,
+    playDirection: effects.direction,
+    pendingDraw: effects.pendingDraw,
+    drawStackType: effects.drawStackType,
   };
 };
 
@@ -318,28 +343,35 @@ export const drawCard = (game: GameState, playerId: string): GameState => {
   if (game.pendingDraw > 0) {
     const afterPenalty = applyDrawPenalty(game, playerIndex, game.pendingDraw);
     const nextIndex = getNextPlayer(playerIndex, game.players.length, game.playDirection, afterPenalty.players);
-    afterPenalty.players.forEach((p, i) => { p.isCurrentTurn = i === nextIndex; });
-    return { ...afterPenalty, currentPlayerIndex: nextIndex, turnTimer: TURN_TIMER_SECONDS };
+    return {
+      ...afterPenalty,
+      players: setCurrentTurn(afterPenalty.players, nextIndex),
+      currentPlayerIndex: nextIndex,
+      turnTimer: TURN_TIMER_SECONDS,
+    };
   }
 
-  const { drawn, deck } = drawFromDeck(game, 1);
+  const { drawn, deck, discardPile } = drawFromDeck(game, 1);
   if (drawn.length === 0) return game;
 
-  const newPlayers = game.players.map((p) => ({ ...p, isCurrentTurn: false }));
-  newPlayers[playerIndex] = {
-    ...newPlayers[playerIndex],
-    hand: [...newPlayers[playerIndex].hand, ...drawn],
-    hasCalledDax: false,
-    hasCalledUno: false,
-  };
-
-  const nextIndex = getNextPlayer(playerIndex, game.players.length, game.playDirection, newPlayers);
-  newPlayers[nextIndex].isCurrentTurn = true;
+  const withDrawn = game.players.map((p, i) =>
+    i === playerIndex
+      ? {
+          ...p,
+          hand: [...p.hand, ...drawn],
+          hasCalledDax: false,
+          hasCalledUno: false,
+          isCurrentTurn: false,
+        }
+      : { ...p, isCurrentTurn: false }
+  );
+  const nextIndex = getNextPlayer(playerIndex, game.players.length, game.playDirection, withDrawn);
 
   return {
     ...game,
-    players: newPlayers,
+    players: setCurrentTurn(withDrawn, nextIndex),
     deck,
+    discardPile,
     currentPlayerIndex: nextIndex,
     turnTimer: TURN_TIMER_SECONDS,
   };
@@ -445,6 +477,7 @@ export function firebaseToGameState(room: FirebaseRoom): GameState | null {
   if (!room.gameState) return null;
 
   const gs = room.gameState;
+  // DAX call and UNO call share one flag in Firebase (hasCalledUno); UI exposes both names.
   const players: Player[] = room.players.map((fp, i) => ({
     id: fp.id,
     name: fp.name,
@@ -475,8 +508,8 @@ export function firebaseToGameState(room: FirebaseRoom): GameState | null {
     hostId: room.hostId,
     createdAt: room.createdAt,
     settings: {
-      minPlayers: 2,
-      maxPlayers: room.settings.maxPlayers as 4,
+      minPlayers: MIN_PLAYERS,
+      maxPlayers: room.settings.maxPlayers as GameSettings["maxPlayers"],
       handSize: room.settings.handSize as GameSettings["handSize"],
       houseRules: {
         plus2Stack: room.settings.plus2Stack,
@@ -511,7 +544,7 @@ export function syncPlayersHands(game: GameState): FirebaseRoom["players"] {
     avatarId: p.avatarId,
     isReady: true,
     afkStrikes: p.afkStrikes,
-    hasCalledUno: p.hasCalledUno,
+    hasCalledUno: p.hasCalledUno || p.hasCalledDax,
     status: p.status === "spectator" ? "active" : p.status,
   }));
 }

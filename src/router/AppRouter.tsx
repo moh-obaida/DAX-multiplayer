@@ -31,10 +31,11 @@ export default function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<SuspenseWrap><LandingPage /></SuspenseWrap>} />
+        <Route path="/" element={<SuspenseWrap><GameMenuPage /></SuspenseWrap>} />
+        <Route path="/play" element={<Navigate to="/" replace />} />
+        <Route path="/marketing" element={<SuspenseWrap><LandingPage /></SuspenseWrap>} />
 
         <Route element={<AppLayout />}>
-          <Route path="/play" element={<SuspenseWrap><GameMenuPage /></SuspenseWrap>} />
           <Route path="/lobby" element={<SuspenseWrap><LobbyPage /></SuspenseWrap>} />
           <Route path="/room/:roomCode" element={<SuspenseWrap><Lobby /></SuspenseWrap>} />
           <Route path="/login" element={<SuspenseWrap><LoginPage /></SuspenseWrap>} />
@@ -49,6 +50,7 @@ export default function AppRouter() {
         </Route>
 
         <Route path="/game/:gameId" element={<SuspenseWrap><Game /></SuspenseWrap>} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );

@@ -23,7 +23,7 @@ export default function GameMenuSideRail() {
       addToast(copy.toast.invalidCode, "error");
       return;
     }
-    navigate(`/play?join=${code}`);
+    navigate(`/?join=${code}`);
   };
 
   return (

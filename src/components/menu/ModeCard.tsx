@@ -71,7 +71,7 @@ export default function ModeCard({
     );
   }
   return (
-    <Link to={to ?? "/play"} className={classes}>
+    <Link to={to ?? "/"} className={classes}>
       {inner}
     </Link>
   );
